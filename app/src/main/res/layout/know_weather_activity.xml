@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/weather"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20sp"
+        android:fontFamily="serif-monospace"
+        android:text="@string/toKnowWeather"
+        android:textAlignment="center"
+        android:textColor="@color/darkSky"
+        android:textSize="30sp"/>
+</LinearLayout>

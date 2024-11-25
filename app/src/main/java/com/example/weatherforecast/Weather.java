@@ -13,6 +13,9 @@ public class Weather {
         this.feelsLike = feelsLike;
     }
 
+    public Weather(String dateTime, double temp, double feelsLike, String description, String icon) {
+    }
+
     public String getTime() {
         return time;
     }

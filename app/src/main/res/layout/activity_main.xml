@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/darkSky"
+    android:background="@drawable/back_image"
     tools:context=".MainActivity">
 
     <ProgressBar
@@ -26,8 +26,7 @@
             android:id="@+id/IVBack"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@color/darkSky" />
+            android:scaleType="centerCrop" />
 
         <TextView
             android:layout_width="match_parent"
@@ -79,13 +78,14 @@
             android:textSize="70dp"/>
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ViewIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/Temperature"
             android:layout_margin="10dp"
-            android:src="@mipmap/ic_launcher"/>
+            android:src="@mipmap/ic_launcher" />
+
 
         <TextView
             android:layout_width="match_parent"
@@ -96,22 +96,14 @@
             android:textColor="@color/white"
             android:layout_below="@+id/ViewIcon"/>
         <TextView
+            android:id="@+id/forecastText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_marginBottom="10dp"
-            android:text="Погода на сегодня"
-            android:layout_above="@+id/RVWeather"
-            android:textColor="@color/white"
-            android:textStyle="bold"/>
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/RVWeather"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
-        </androidx.recyclerview.widget.RecyclerView>
+            android:layout_below="@+id/ConditionTV"
+            android:layout_marginTop="20dp"
+            android:text="Прогноз на 5 дней"
+            android:padding="16dp"
+            android:textSize="16sp" />
 
     </RelativeLayout>
 </RelativeLayout>

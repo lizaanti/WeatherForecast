@@ -1,19 +1,17 @@
 package com.example.weatherforecast;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -21,31 +19,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.RecyclerView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import android.Manifest;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -53,227 +29,200 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.weatherforecast.R;
-import com.example.weatherforecast.Weather;
-import com.example.weatherforecast.WeatherAdapter;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ProgressBar progressBar;
-    private TextView cityName;
-    private TextView tempResult, feels;
-    private SearchView searchView;
-    private RelativeLayout home;
-    private ImageView ivBack, viewIcon;
-    private RecyclerView weatherRV;
-    private Button toKnowButton;
-    private ArrayList<Weather> weatherArrayList = new ArrayList<>();
-    private WeatherAdapter weatherAdapter;
-    private LocationManager locationManager;
-    private int PERMISSION_CODE = 1;
+    private static final int PERMISSION_CODE = 1;
+    private static final String API_KEY = "355be3e73060ee9814fdfbee14e40a1a";
 
+    private TextView cityName, tempResult, forecastResult;
+    private ProgressBar progressBar;
+    private SearchView searchView;
+    private LocationManager locationManager;
+    private TextView feels;
+    private ImageView icon;
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        progressBar.setVisibility(View.GONE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        searchView = findViewById(R.id.SearchView);
-        tempResult = findViewById(R.id.Temperature);
-        toKnowButton = findViewById(R.id.toKnowWeather);
-        progressBar = findViewById(R.id.Loading);
+
         cityName = findViewById(R.id.CityNameTV);
         feels = findViewById(R.id.ConditionTV);
-        home = findViewById(R.id.HomePage);
-        ivBack = findViewById(R.id.IVBack);
-        viewIcon = findViewById(R.id.ViewIcon);
-        weatherRV = findViewById(R.id.RVWeather);
-        weatherAdapter = new WeatherAdapter(this, weatherArrayList);
-        weatherRV.setAdapter(weatherAdapter);
+        tempResult = findViewById(R.id.Temperature);
+        forecastResult = findViewById(R.id.forecastText);
+        progressBar = findViewById(R.id.Loading);
+        searchView = findViewById(R.id.SearchView);
+        icon = findViewById(R.id.ViewIcon);
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        // Проверяем разрешения
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Запрашиваем разрешения
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-            return;
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_CODE);
+        } else {
+            getLocationAndWeather();
         }
 
-        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        cityName.setText(getCityName(location.getLongitude(), location.getLatitude()));
-
-        /*feels = findViewById(R.id.feels);
-        tempMax = findViewById(R.id.temp_max);
-        tempMin = findViewById(R.id.temp_min);
-        pressure = findViewById(R.id.pressure);
-        humidity = findViewById(R.id.humidity);*/
-
-    }
-
-    public void onRequestPermissionResult(int requestCode, @NonNull String[] permission, @NonNull int[] grantResult){
-        super.onRequestPermissionsResult(requestCode, permission, grantResult);
-        if(requestCode == PERMISSION_CODE){
-            if(grantResult.length > 0 && grantResult[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Разрешение предоставлено..", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(this, "Пожалуйста, предоставьте разрешение", Toast.LENGTH_SHORT).show();
-                finish();
+        // Поиск погоды по введенному городу
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (!query.trim().isEmpty()) {
+                    getWeatherInfo(query);
+                } else {
+                    Toast.makeText(MainActivity.this, "Введите название города", Toast.LENGTH_SHORT).show();
+                }
+                return false;
             }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLocationAndWeather() {
+        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if (location != null) {
+            String city = getCityName(location.getLongitude(), location.getLatitude());
+            getWeatherInfo(city);
+        } else {
+            Toast.makeText(this, "Не удалось определить местоположение", Toast.LENGTH_SHORT).show();
         }
     }
 
-
-    private String getCityName(double longitude, double latitude){
+    private String getCityName(double longitude, double latitude) {
         String cityNameStr = "Не найдено";
         Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
-        try{
-            List<Address> addresses =  gcd.getFromLocation(latitude, longitude, 10);
-
+        try {
+            List<Address> addresses = gcd.getFromLocation(latitude, longitude, 10);
             for (Address adr : addresses) {
                 if (adr != null) {
                     String city = adr.getLocality();
-                    if (city != null && !city.equals("")) {
+                    if (city != null && !city.isEmpty()) {
                         cityNameStr = city;
-                        break; // Прерываем цикл после нахождения города
+                        break;
                     }
                 }
             }
-            if (cityNameStr.equals("Не найдено")) {
-                Log.d("TAG", "ГОРОД НЕ НАЙДЕН");
-                Toast.makeText(this, "Город пользователя не найден..", Toast.LENGTH_SHORT).show();
-            }
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return cityNameStr;
     }
 
-    private void getWeatherIngo(String cityNameStr) {
-
+    private void getWeatherInfo(String city) {
         progressBar.setVisibility(View.VISIBLE);
-        cityName.setText(cityNameStr);
-        cityNameStr = searchView.getQuery().toString();
-        String url = "https://api.openweathermap.org/data/2.5/weather?q=" + cityNameStr + "&appid=355be3e73060ee9814fdfbee14e40a1a&units=metric&lang=ru";
 
-        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        String currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + API_KEY + "&units=metric&lang=ru";
+        String forecastWeatherUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + API_KEY + "&units=metric&lang=ru";
 
-        toKnowButton.setOnClickListener(view -> {
-            if (searchView.getQuery().toString().trim().equals("")) {
-                Toast.makeText(MainActivity.this, R.string.if_no_input, Toast.LENGTH_LONG).show();
-            } else {
-                String city = searchView.getQuery().toString();
-                String searchUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=355be3e73060ee9814fdfbee14e40a1a&units=metric&lang=ru";
-                new GetURL().execute(searchUrl); // используем URL для поиска
-            }
-        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        // Запрос текущей погоды
+        JsonObjectRequest currentWeatherRequest = new JsonObjectRequest(
                 Request.Method.GET,
-                url,
+                currentWeatherUrl,
                 null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        progressBar.setVisibility(View.GONE);
-                        home.setVisibility(View.VISIBLE);
-                        weatherArrayList.clear();
-                    }
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    parseCurrentWeatherResponse(response, city);
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // Обработка ошибки
-                        Toast.makeText(MainActivity.this, "Корректно введите название города..", Toast.LENGTH_SHORT).show();
-                    }
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "Ошибка получения данных текущей погоды.", Toast.LENGTH_SHORT).show();
                 }
         );
 
-        // Добавляем запрос в очередь для выполнения
-        requestQueue.add(jsonObjectRequest);
+        // Запрос прогноза на 5 дней
+        JsonObjectRequest forecastWeatherRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                forecastWeatherUrl,
+                null,
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    parseForecastWeatherResponse(response);
+                },
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "Ошибка получения данных прогноза.", Toast.LENGTH_SHORT).show();
+                }
+        );
+
+        // Выполняем запросы
+        requestQueue.add(currentWeatherRequest);
+        requestQueue.add(forecastWeatherRequest);
     }
 
-    private class GetURL extends AsyncTask<String, String, String>{
-
-        protected void onPreExecute(){
-            super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
+    private void parseCurrentWeatherResponse(JSONObject response, String city) {
+        try {
+            JSONObject main = response.getJSONObject("main");
+            String temp = main.getString("temp");
+            String feelsLike = main.getString("feels_like");
+            long tempRounded = Math.round(Double.parseDouble(temp));
+            long feelsRounded = Math.round(Double.parseDouble(feelsLike));
+            cityName.setText(city);
+            tempResult.setText(tempRounded + "°C");
+            feels.setText("Ощущается как: " + feelsLike + "°C");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка обработки текущей погоды.", Toast.LENGTH_SHORT).show();
         }
-        @Override
-        protected String doInBackground(String... strings) {
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-            try {
-                URL url = new URL(strings[0]); //открываем URl соединение
-                connection = (HttpURLConnection) url.openConnection(); //открываем http соединение
-                connection.connect();
+    }
 
-                InputStream input = connection.getInputStream(); //считываем весь поток, который получили
-                reader = new BufferedReader(new InputStreamReader(input));
+    private void parseForecastWeatherResponse(JSONObject response) {
+        try {
+            JSONArray list = response.getJSONArray("list");
+            StringBuilder forecast = new StringBuilder("Прогноз на 5 дней:\n");
 
-                StringBuffer buffer = new StringBuffer();
-                String str = "";
+            for (int i = 0; i < list.length(); i += 8) { // Каждые 8 записей - прогноз на новый день
+                JSONObject forecastItem = list.getJSONObject(i);
+                String dateTime = forecastItem.getString("dt_txt").split(" ")[0]; // Только дата
+                JSONObject main = forecastItem.getJSONObject("main");
+                double temp = main.getDouble("temp");
+                String description = forecastItem.getJSONArray("weather").getJSONObject(0).getString("description");
 
-                while((str = reader.readLine()) != null){
-                    buffer.append(str).append("\n");
-                }
-                return buffer.toString();
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                // Форматируем прогноз
+                forecast.append(dateTime).append(": ")
+                        .append(String.format("%.1f", temp)).append("°C, ")
+                        .append(description).append("\n");
             }
-            finally {
-                if(connection != null)
-                    connection.disconnect();
 
-                try {
-                    if (reader != null)
-                        reader.close();
-                }
-                catch (IOException e){
-                    throw new RuntimeException(e);
-                }
-            }
+            RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(400, 400);
+            layoutParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
+            icon.setLayoutParams(layoutParams2);
+            icon.setImageResource(R.drawable.sunny);
+
+            // Устанавливаем текст в TextView
+            forecastResult.setText(forecast.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка обработки данных прогноза погоды.", Toast.LENGTH_SHORT).show();
         }
+    }
 
-        @SuppressLint("SetTextI18n")
-        @Override
-        protected void onPostExecute(String result){
-            super.onPostExecute(result);
-
-            try {
-                JSONObject jsonObj = new JSONObject(result);
-                JSONObject weatherInfo = jsonObj.getJSONObject("main");
-                String temp = weatherInfo.getString("temp");
-                String feelsLike = weatherInfo.getString("feels_like");
-                /*String temp_max = weatherInfo.getString("temp_max");
-                String temp_min = weatherInfo.getString("temp_min");
-                String pressure1 = weatherInfo.getString("pressure");
-                String humidity1 = weatherInfo.getString("humidity");*/
-
-                Double.parseDouble(temp);
-                long tempRes = Math.round(Float.parseFloat(temp));
-
-                tempResult.setText(Long.toString(tempRes) + "°");
-
-                Double.parseDouble(feelsLike);
-                long FeelsRes = Math.round(Float.parseFloat(feelsLike));
-                feels.setText("Ощущается как: " + feelsLike + "°");
-                /*tempMax.setText("Максимальная температура: " + temp_max);
-                tempMin.setText("Минимальная температура: " +temp_min);
-                pressure.setText("Давление: " + pressure1);
-                humidity.setText("Влажность: " + humidity1);*/
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLocationAndWeather();
+            } else {
+                Toast.makeText(this, "Разрешение на доступ к местоположению необходимо.", Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -1,0 +1,31 @@
+package com.example.weatherforecast.data.entities;
+
+@Entity(tableName = "weather_data",
+foreignKeys = @ForeignKey(entity = Location.class,
+parentColumns = "id",
+childColumns = "location_id",
+omDelete = ForeignKey.CASCADE))
+public class WeatherData {
+    @PrimaryKey(autoGenerate = true)
+    public int id;
+
+    @ColumnInfo(name = "location_id")
+    public int locationId;
+
+    @ColumnInfo(name = "temperature")
+    public double temperature;
+
+    @ColumnInfo(name = "humidity")
+    public double humidity;
+
+    @ColumnInfo(name = "pressure")
+    public int pressure;
+
+    @ColumnInfo(name = "weather_icon")
+    public String weatherIcon;
+
+    @ColumnInfo(name = "timestamp")
+    public long timestamp;
+
+
+}

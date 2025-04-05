@@ -1,6 +1,8 @@
-package com.example.weatherforecast;
+package com.example.weatherforecast.model;
 
-public class Weather {
+import java.io.Serializable;
+
+public class Weather implements Serializable {
     private String time;
     private String temperature;
     private String icon;
@@ -13,38 +15,16 @@ public class Weather {
         this.feelsLike = feelsLike;
     }
 
-    public Weather(String dateTime, double temp, double feelsLike, String description, String icon) {
-    }
-
     public String getTime() {
         return time;
     }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
     public String getTemperature() {
         return temperature;
     }
-
-    public void setTemperature(String temperature) {
-        this.temperature = temperature;
-    }
-
     public String getIcon() {
         return icon;
     }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
     public String getFeelsLike() {
         return feelsLike;
-    }
-
-    public void setFeelsLike(String feelsLike) {
-        this.feelsLike = feelsLike;
     }
 }

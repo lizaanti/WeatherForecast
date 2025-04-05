@@ -1,5 +1,11 @@
 package com.example.weatherforecast.data.entities;
 
+import androidx.room.Dao;
+import androidx.room.Entity;
+import androidx.room.Insert;
+import androidx.room.ColumnInfo;
+import androidx.room.PrimaryKey;
+
 @Entity(tableName = "forecasts",
         foreignKeys = @ForeignKey(entity = WeatherData.class,
                 parentColumns = "id",

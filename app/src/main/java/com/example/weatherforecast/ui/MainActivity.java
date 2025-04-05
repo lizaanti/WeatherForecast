@@ -28,6 +28,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherforecast.R;
+import com.example.weatherforecast.data.AppDatabase;
+import com.example.weatherforecast.data.entities.UserPreferences;
 import com.example.weatherforecast.ui.adapter.WeatherAdapter;
 import com.example.weatherforecast.model.Weather;
 import com.squareup.picasso.Picasso;
@@ -99,6 +101,25 @@ public class MainActivity extends AppCompatActivity {
 
         // Смена фона в зависимости от времени суток
         setDynamicBackground();
+
+        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final UserPreferences preferences = db.userPreferencesDao().getPreferences();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (preferences != null) {
+                            Toast.makeText(MainActivity.this, "Настройки: " + preferences.temperatureUnit, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Настройки не найдены", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        }).start();
+
 
         // Проверка разрешений
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)

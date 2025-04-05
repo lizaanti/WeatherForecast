@@ -4,7 +4,7 @@ package com.example.weatherforecast.data.entities;
 foreignKeys = @ForeignKey(entity = Location.class,
 parentColumns = "id",
 childColumns = "location_id",
-omDelete = ForeignKey.CASCADE))
+onDelete = ForeignKey.CASCADE))
 public class WeatherData {
     @PrimaryKey(autoGenerate = true)
     public int id;

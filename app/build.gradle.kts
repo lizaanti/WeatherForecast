@@ -1,15 +1,8 @@
-import org.apache.tools.ant.util.JavaEnvUtils.VERSION_1_8
-import org.gradle.accessors.dm.LibrariesForLibs.RoomLibraryAccessors
+
 
 plugins {
     alias(libs.plugins.android.application)
-}
-
-allprojects {
-    repositories {
-        google()
-    }
-}
+   }
 
 
 android {
@@ -47,16 +40,18 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.room.common)
-    implementation(libs.support.annotations)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.gson)
-    implementation (libs.picasso)
-    implementation (libs.volley)
-    implementation (libs.play.services.location.license)
+    implementation(libs.picasso)
+    implementation(libs.volley)
+    implementation(libs.play.services.location.license)
 
-
-}
+    implementation (libs.androidx.runtime.livedata)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.room.compiler)
+   }
 

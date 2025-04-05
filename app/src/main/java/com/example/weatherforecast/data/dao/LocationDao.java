@@ -4,6 +4,11 @@ package com.example.weatherforecast.data.dao;
 import android.location.Location;
 
 import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
 
 import java.util.List;
 

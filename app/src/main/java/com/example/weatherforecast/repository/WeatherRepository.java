@@ -1,5 +1,12 @@
 package com.example.weatherforecast.repository;
 
+import android.content.Context;
+
+import androidx.lifecycle.LiveData;
+
+import com.example.weatherforecast.data.AppDatabase;
+import com.example.weatherforecast.data.entities.WeatherData;
+
 public class WeatherRepository {
     private AppDatabase database;
 

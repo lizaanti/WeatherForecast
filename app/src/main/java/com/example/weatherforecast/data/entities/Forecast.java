@@ -2,6 +2,7 @@ package com.example.weatherforecast.data.entities;
 
 import androidx.room.Dao;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.Insert;
 import androidx.room.ColumnInfo;
 import androidx.room.PrimaryKey;

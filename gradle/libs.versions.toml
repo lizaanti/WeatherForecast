@@ -12,6 +12,7 @@ picasso = "2.71828"
 playServicesLocationLicense = "12.0.1"
 volley = "1.2.1"
 roomCommon = "2.6.1"
+supportAnnotations = "28.0.0"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -26,6 +27,7 @@ picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 play-services-location-license = { module = "com.google.android.gms:play-services-location-license", version.ref = "playServicesLocationLicense" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
+support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

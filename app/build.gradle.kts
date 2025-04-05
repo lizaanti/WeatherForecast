@@ -1,8 +1,16 @@
 import org.apache.tools.ant.util.JavaEnvUtils.VERSION_1_8
+import org.gradle.accessors.dm.LibrariesForLibs.RoomLibraryAccessors
 
 plugins {
     alias(libs.plugins.android.application)
 }
+
+allprojects {
+    repositories {
+        google()
+    }
+}
+
 
 android {
     namespace = "com.example.weatherforecast"
@@ -40,6 +48,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.room.common)
+    implementation(libs.support.annotations)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -47,5 +56,7 @@ dependencies {
     implementation (libs.picasso)
     implementation (libs.volley)
     implementation (libs.play.services.location.license)
+
+
 }
 

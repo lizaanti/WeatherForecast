@@ -3,6 +3,7 @@ package com.example.weatherforecast.data.entities;
 import androidx.room.Dao;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Index;
 import androidx.room.Insert;
 import androidx.room.ColumnInfo;
 import androidx.room.PrimaryKey;
@@ -11,7 +12,8 @@ import androidx.room.PrimaryKey;
         foreignKeys = @ForeignKey(entity = WeatherData.class,
                 parentColumns = "id",
                 childColumns = "weather_data_id",
-                onDelete = ForeignKey.CASCADE))
+                onDelete = ForeignKey.CASCADE),
+indices = {@Index("weather_data_id")})
 public class Forecast {
     @PrimaryKey(autoGenerate = true)
     public int id;
@@ -30,4 +32,5 @@ public class Forecast {
 
     @ColumnInfo(name = "weather_icon")
     public String weatherIcon;
+
 }

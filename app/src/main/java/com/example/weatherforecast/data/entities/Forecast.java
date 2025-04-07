@@ -33,4 +33,52 @@ public class Forecast {
     @ColumnInfo(name = "weather_icon")
     public String weatherIcon;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getWeatherDataId() {
+        return weatherDataId;
+    }
+
+    public void setWeatherDataId(int weatherDataId) {
+        this.weatherDataId = weatherDataId;
+    }
+
+    public String getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(double temperature) {
+        this.temperature = temperature;
+    }
+
+    public double getFeelsLike() {
+        return feelsLike;
+    }
+
+    public void setFeelsLike(double feelsLike) {
+        this.feelsLike = feelsLike;
+    }
+
+    public String getWeatherIcon() {
+        return weatherIcon;
+    }
+
+    public void setWeatherIcon(String weatherIcon) {
+        this.weatherIcon = weatherIcon;
+    }
+
 }

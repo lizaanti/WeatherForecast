@@ -16,4 +16,36 @@ public class UserPreferences {
 
     @ColumnInfo(name = "notifications_enabled")
     public boolean notificationsEnabled;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTemperatureUnit() {
+        return temperatureUnit;
+    }
+
+    public void setTemperatureUnit(String temperatureUnit) {
+        this.temperatureUnit = temperatureUnit;
+    }
+
+    public String getWindSpeedUnit() {
+        return windSpeedUnit;
+    }
+
+    public void setWindSpeedUnit(String windSpeedUnit) {
+        this.windSpeedUnit = windSpeedUnit;
+    }
+
+    public boolean isNotificationsEnabled() {
+        return notificationsEnabled;
+    }
+
+    public void setNotificationsEnabled(boolean notificationsEnabled) {
+        this.notificationsEnabled = notificationsEnabled;
+    }
 }

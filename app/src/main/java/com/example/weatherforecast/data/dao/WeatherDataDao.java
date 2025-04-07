@@ -9,6 +9,8 @@ import androidx.room.Transaction;
 
 import com.example.weatherforecast.data.entities.WeatherData;
 
+import java.util.List;
+
 @Dao
 public interface WeatherDataDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -17,5 +19,8 @@ public interface WeatherDataDao {
     @Transaction
     @Query("SELECT * FROM weather_data WHERE location_id = :locationId ORDER BY timestamp DESC LIMIT 1")
     LiveData<WeatherData> getLatestWeather(int locationId);
+
+    @Query("SELECT * FROM weather_data")
+    LiveData<List<WeatherData>> getAllWeatherData();
 }
 

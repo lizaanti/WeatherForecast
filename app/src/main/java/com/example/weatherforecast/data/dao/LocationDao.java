@@ -20,6 +20,9 @@ public interface LocationDao {
     @Query("SELECT * FROM locations WHERE is_favorite = 1")
      LiveData<List<Location>> getFavoriteLocations();
 
+    @Query("SELECT * FROM locations")
+    LiveData<List<com.example.weatherforecast.data.entities.Location>> getAllLocations();
+
     @Delete
     void delete(com.example.weatherforecast.data.entities.Location location);
 }

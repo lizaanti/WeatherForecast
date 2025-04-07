@@ -1,6 +1,6 @@
 package com.example.weatherforecast.ui;
-
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +9,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,9 +31,12 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherforecast.R;
 import com.example.weatherforecast.data.AppDatabase;
+import com.example.weatherforecast.data.entities.Forecast;
 import com.example.weatherforecast.data.entities.UserPreferences;
-import com.example.weatherforecast.ui.adapter.WeatherAdapter;
+import com.example.weatherforecast.data.entities.WeatherData;
 import com.example.weatherforecast.model.Weather;
+import com.example.weatherforecast.repository.WeatherRepository;
+import com.example.weatherforecast.ui.adapter.WeatherAdapter;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -48,33 +53,30 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_CODE = 1;
     private static final String API_KEY = "355be3e73060ee9814fdfbee14e40a1a";
+    private static final String TAG = "MainActivity";
 
     private TextView cityName, tempResult, forecastResult, feels;
     private ProgressBar progressBar;
     private SearchView searchView;
     private LocationManager locationManager;
-    private ImageView viewIcon; // Главное изображение
+    private ImageView viewIcon;
     private ImageView settings;
-
-    // TextView для данных о влажности, ветре и давлении
-    private TextView tvHumidity, tvHumidityLabel;
-    private TextView tvWind, tvWindLabel;
-    private TextView tvPressure, tvPressureLabel;
-
-    // RecyclerView для прогноза
+    private TextView tvHumidity, tvWind, tvPressure;
     private RecyclerView recyclerView;
     private ArrayList<Weather> forecastList;
     private WeatherAdapter weatherAdapter;
 
+    private WeatherRepository weatherRepository;
+
+    @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Полноэкранный режим
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
 
-        // Привязка view
+        // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);
         feels = findViewById(R.id.ConditionTV);
         tempResult = findViewById(R.id.Temperature);
@@ -82,15 +84,12 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.Loading);
         searchView = findViewById(R.id.SearchView);
         recyclerView = findViewById(R.id.recycleV);
-        viewIcon = findViewById(R.id.ViewIcon); // Главная иконка
+        viewIcon = findViewById(R.id.ViewIcon);
         settings = findViewById(R.id.Settings);
-
-        // Привязка новых TextView для данных о погоде (нижний блок)
         tvHumidity = findViewById(R.id.TV1);
         tvWind = findViewById(R.id.TV3);
         tvPressure = findViewById(R.id.TV5);
 
-        // Инициализация RecyclerView
         forecastList = new ArrayList<>();
         weatherAdapter = new WeatherAdapter(this, forecastList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this,
@@ -99,29 +98,22 @@ public class MainActivity extends AppCompatActivity {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        // Смена фона в зависимости от времени суток
+        // Инициализация репозитория
+        weatherRepository = new WeatherRepository(this);
+
+        weatherRepository = new WeatherRepository(this);
+        AppDatabase.getInstance(this).clearAllTables(); // Очистка таблиц
+        weatherRepository.insertTestData();
+
+        // Добавляем тестовые данные (если нужно)
+        weatherRepository.insertTestData();
+
+        // Наблюдаем за данными и выводим их в консоль
+        observeDatabase();
+
+        // Остальной код (проверка разрешений, обработчики и т.д.) остается без изменений
         setDynamicBackground();
 
-        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final UserPreferences preferences = db.userPreferencesDao().getPreferences();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (preferences != null) {
-                            Toast.makeText(MainActivity.this, "Настройки: " + preferences.temperatureUnit, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Настройки не найдены", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-        }).start();
-
-
-        // Проверка разрешений
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -134,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
             getLocationAndWeather();
         }
 
-        // Поиск погоды по введённому городу
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -145,26 +136,94 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return false;
             }
+
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
             }
         });
 
-        // Обработчик клика для открытия подробного прогноза
         forecastResult.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ForecastDetailActivity.class);
             intent.putExtra("forecastList", forecastList);
             startActivity(intent);
         });
 
-        //Обработчик клика для открытия настроек
         settings.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
     }
 
+    private void observeDatabase() {
+        // Вывод местоположений
+        weatherRepository.getAllLocations().observe(this, locations -> {
+            Log.d(TAG, "=== Locations Table ===");
+            if (locations == null || locations.isEmpty()) {
+                Log.d(TAG, "No locations found.");
+            } else {
+                for (com.example.weatherforecast.data.entities.Location location : locations) {
+                    Log.d(TAG, "ID: " + location.getId() +
+                            ", City: " + location.getCityName() +
+                            ", Latitude: " + location.getLatitude() +
+                            ", Longitude: " + location.getLongitude() +
+                            ", Is Favorite: " + location.isFavorite());
+                }
+            }
+        });
+
+        // Вывод данных о погоде
+        weatherRepository.getAllWeatherData().observe(this, weatherDataList -> {
+            Log.d(TAG, "=== WeatherData Table ===");
+            if (weatherDataList == null || weatherDataList.isEmpty()) {
+                Log.d(TAG, "No weather data found.");
+            } else {
+                for (WeatherData weatherData : weatherDataList) {
+                    Log.d(TAG, "ID: " + weatherData.getId() +
+                            ", Location ID: " + weatherData.getLocationId() +
+                            ", Temperature: " + weatherData.getTemperature() +
+                            ", Humidity: " + weatherData.getHumidity() +
+                            ", Pressure: " + weatherData.getPressure() +
+                            ", Weather Icon: " + weatherData.getWeatherIcon() +
+                            ", Timestamp: " + weatherData.getTimestamp());
+                }
+            }
+        });
+
+        // Вывод прогнозов
+        weatherRepository.getAllForecasts().observe(this, forecasts -> {
+            Log.d(TAG, "=== Forecasts Table ===");
+            if (forecasts == null || forecasts.isEmpty()) {
+                Log.d(TAG, "No forecasts found.");
+            } else {
+                for (Forecast forecast : forecasts) {
+                    Log.d(TAG, "ID: " + forecast.getId() +
+                            ", Weather Data ID: " + forecast.getWeatherDataId() +
+                            ", DateTime: " + forecast.getDateTime() +
+                            ", Temperature: " + forecast.getTemperature() +
+                            ", Feels Like: " + forecast.getFeelsLike() +
+                            ", Weather Icon: " + forecast.getWeatherIcon());
+                }
+            }
+        });
+
+        // Вывод настроек
+        weatherRepository.getAllPreferences().observe(this, preferencesList -> {
+            Log.d(TAG, "=== UserPreferences Table ===");
+            if (preferencesList == null || preferencesList.isEmpty()) {
+                Log.d(TAG, "No preferences found.");
+            } else {
+                for (UserPreferences preferences : preferencesList) {
+                    Log.d(TAG, "ID: " + preferences.getId() +
+                            ", Temperature Unit: " + preferences.getTemperatureUnit() +
+                            ", Wind Speed Unit: " + preferences.getWindSpeedUnit() +
+                            ", Notifications Enabled: " + preferences.isNotificationsEnabled());
+                }
+            }
+        });
+    }
+
+    // Остальной код (setDynamicBackground, getLocationAndWeather и т.д.) остается без изменений
     private void setDynamicBackground() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         int backgroundResId;
@@ -221,7 +280,6 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
 
-        // Запрос текущей погоды
         JsonObjectRequest currentWeatherRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 currentWeatherUrl,
@@ -237,7 +295,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        // Запрос прогноза на 5 дней
         JsonObjectRequest forecastWeatherRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 forecastWeatherUrl,
@@ -266,19 +323,15 @@ public class MainActivity extends AppCompatActivity {
             tempResult.setText(temp + "°C");
             feels.setText("Ощущается как: " + feelsLike + "°C");
 
-            // Получаем данные для нижнего блока
             int humidity = mainObj.getInt("humidity");
             int pressure = mainObj.getInt("pressure");
             JSONObject windObj = response.getJSONObject("wind");
             double windSpeed = windObj.getDouble("speed");
 
             tvHumidity.setText(humidity + "%");
-
             tvWind.setText(Math.round(windSpeed) + " м/с");
-
             tvPressure.setText(pressure + " hPa");
 
-            // Обновляем иконку главного экрана (ViewIcon)
             JSONArray weatherArray = response.getJSONArray("weather");
             if (weatherArray.length() > 0) {
                 JSONObject weatherObj = weatherArray.getJSONObject(0);

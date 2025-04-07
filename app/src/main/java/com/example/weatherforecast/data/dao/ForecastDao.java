@@ -17,4 +17,7 @@ public interface ForecastDao {
 
     @Query("SELECT * FROM forecasts WHERE weather_data_id = :weatherDataId")
     LiveData<List<Forecast>> getForecasts(int weatherDataId);
+
+    @Query("SELECT * FROM forecasts")
+    LiveData<List<Forecast>> getAllForecasts();
 }

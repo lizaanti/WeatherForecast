@@ -1,8 +1,8 @@
 package com.example.weatherforecast.data;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
-import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -32,7 +32,6 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-
             database.execSQL("ALTER TABLE user_preferences ADD COLUMN update_interval INTEGER NOT NULL DEFAULT 60");
         }
     };
@@ -49,5 +48,15 @@ public abstract class AppDatabase extends RoomDatabase {
             }
         }
         return INSTANCE;
+    }
+
+    // Метод для очистки всех таблиц
+    public void clearAllTables() {
+        new Thread(() -> {
+            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM locations");
+            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM weather_data");
+            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM forecasts");
+            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM user_preferences");
+        }).start();
     }
 }

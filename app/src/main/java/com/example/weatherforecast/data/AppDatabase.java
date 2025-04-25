@@ -1,14 +1,12 @@
 package com.example.weatherforecast.data;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
-
 import com.example.weatherforecast.data.dao.ForecastDao;
 import com.example.weatherforecast.data.dao.LocationDao;
 import com.example.weatherforecast.data.dao.UserPreferencesDao;
@@ -19,7 +17,7 @@ import com.example.weatherforecast.data.entities.UserPreferences;
 import com.example.weatherforecast.data.entities.WeatherData;
 
 @Database(entities = {UserPreferences.class, Location.class, WeatherData.class, Forecast.class},
-        version = 2,
+        version = 3,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract UserPreferencesDao userPreferencesDao();
@@ -29,10 +27,17 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
 
-    private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE UserPreferences ADD COLUMN update_interval INTEGER NOT NULL DEFAULT 60");
+        }
+    };
+
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE user_preferences ADD COLUMN update_interval INTEGER NOT NULL DEFAULT 60");
+            database.execSQL("ALTER TABLE weather_data ADD COLUMN new_field TEXT");
         }
     };
 
@@ -40,23 +45,16 @@ public abstract class AppDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                                    AppDatabase.class, "weather_database")
-                            .addMigrations(MIGRATION_1_2)
+                    INSTANCE = Room.databaseBuilder(
+                                    context.getApplicationContext(),
+                                    AppDatabase.class,
+                                    "weather_database"
+                            )
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .build();
                 }
             }
         }
         return INSTANCE;
-    }
-
-    // Метод для очистки всех таблиц
-    public void clearAllTables() {
-        new Thread(() -> {
-            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM locations");
-            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM weather_data");
-            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM forecasts");
-            getOpenHelper().getWritableDatabase().execSQL("DELETE FROM user_preferences");
-        }).start();
     }
 }

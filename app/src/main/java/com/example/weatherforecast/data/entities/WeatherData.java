@@ -34,6 +34,17 @@ public class WeatherData {
     @ColumnInfo(name = "timestamp")
     public long timestamp;
 
+    @ColumnInfo(name = "new_field")
+    public String newField;
+
+    public void setNewField(String newField) {
+        this.newField = newField;
+    }
+
+    public String getNewField() {
+        return newField;
+    }
+
     public int getId() {
         return id;
     }

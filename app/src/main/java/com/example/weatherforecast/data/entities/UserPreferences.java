@@ -17,6 +17,17 @@ public class UserPreferences {
     @ColumnInfo(name = "notifications_enabled")
     public boolean notificationsEnabled;
 
+    @ColumnInfo(name = "update_interval")
+    public int updateInterval;
+
+    public void setUpdateInterval(int updateInterval) {
+        this.updateInterval = updateInterval;
+    }
+
+    public int getUpdateInterval() {
+        return updateInterval;
+    }
+
     public int getId() {
         return id;
     }

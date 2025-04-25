@@ -8,6 +8,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
@@ -31,6 +32,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherforecast.R;
 import com.example.weatherforecast.data.AppDatabase;
+import com.example.weatherforecast.data.dao.WeatherDataDao;
 import com.example.weatherforecast.data.entities.Forecast;
 import com.example.weatherforecast.data.entities.UserPreferences;
 import com.example.weatherforecast.data.entities.WeatherData;
@@ -48,6 +50,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,6 +79,14 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
+
+        // Перенос clearAllTables в фоновый поток
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            WeatherDataDao weatherDataDao = AppDatabase.getInstance(getApplicationContext()).weatherDataDao();
+            weatherDataDao.deleteOldData(System.currentTimeMillis() - 24 * 60 * 60 * 1000); // Удаление данных старше 24 часов
+        });
+        executor.shutdown();
 
         // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);

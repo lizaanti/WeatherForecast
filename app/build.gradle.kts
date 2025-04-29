@@ -54,5 +54,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.room.compiler)
-   }
+    implementation("com.google.firebase:firebase-messaging:24.1.1")
+    runtimeOnly("androidx.core:core:1.16.0")
+}
 

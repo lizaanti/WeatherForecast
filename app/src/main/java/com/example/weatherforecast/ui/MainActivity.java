@@ -53,6 +53,9 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.example.weatherforecast.data.notifications.MyFirebaseService;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_CODE = 1;
@@ -87,6 +90,25 @@ public class MainActivity extends AppCompatActivity {
             weatherDataDao.deleteOldData(System.currentTimeMillis() - 24 * 60 * 60 * 1000); // Удаление данных старше 24 часов
         });
         executor.shutdown();
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        String token = task.getResult();
+                        Log.d(TAG, "FCM Token: " + token);
+                    } else{
+                        Log.w(TAG, "Fetching FCM token failed", task.getException());
+                    }
+                });
+
+        // Примерная подписка на тему weather_updates
+        FirebaseMessaging.getInstance()
+                .subscribeToTopic("weather_updates")
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        Log.d(TAG, "Subscribed to weather_updates");
+                    }
+                });
 
         // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);

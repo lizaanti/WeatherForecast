@@ -1,7 +1,8 @@
 
 
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
+    id("com.google.gms.google-services")
    }
 
 
@@ -36,11 +37,15 @@ android {
 
 dependencies {
 
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.androidx.room.common)
+    implementation(libs.support.annotations)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -54,7 +59,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.room.compiler)
-    implementation("com.google.firebase:firebase-messaging:24.1.1")
-    runtimeOnly("androidx.core:core:1.16.0")
+    implementation(libs.firebase.messaging)
+    runtimeOnly(libs.androidx.core)
 }
 

@@ -95,9 +95,11 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         String token = task.getResult();
-                        Log.d(TAG, "FCM Token: " + token);
-                    } else{
-                        Log.w(TAG, "Fetching FCM token failed", task.getException());
+                        //Log.d(TAG, "FCM Token: " + token);
+                        Log.d("FCM_TOKEN", "Token:" + token);
+                   }
+                   else{
+                       Log.w(TAG, "Fetching FCM token failed", task.getException());
                     }
                 });
 

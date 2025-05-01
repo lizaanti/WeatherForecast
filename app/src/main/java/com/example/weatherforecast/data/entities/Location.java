@@ -9,21 +9,21 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "locations")
 public class Location {
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public Integer id;
 
     @ColumnInfo(name = "city_name")
     public String cityName;
 
     @ColumnInfo(name = "latitude")
-    public double latitude;
+    public Double latitude;
 
     @ColumnInfo(name = "longitude")
-    public double longitude;
+    public Double longitude;
 
     @ColumnInfo(name = "is_favorite")
     public boolean isFavorite;
 
-    public Location(@NonNull String cityName, double latitude, double longitude, boolean isFavorite) {
+    public Location(@NonNull String cityName, Double latitude, Double longitude, boolean isFavorite) {
         this.cityName = cityName;
         this.latitude = latitude;
         this.longitude = longitude;

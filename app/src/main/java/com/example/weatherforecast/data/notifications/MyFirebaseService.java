@@ -62,36 +62,52 @@ public class MyFirebaseService extends FirebaseMessagingService {
             }
             showNotification(message, intent);
         }
+        else{
+            showNotification(message, null);
+        }
     }
 
-    private void showNotification(RemoteMessage message, Intent intent){
+    private void showNotification(RemoteMessage message, Intent intent) {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         int notificationId = new Random().nextInt();
 
         // Флаг для обновления Intent
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(
-                this, 0, intent,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                ? PendingIntent.FLAG_IMMUTABLE
-                        : PendingIntent.FLAG_ONE_SHOT
-        );
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pi = PendingIntent.getActivity(
+                    this, 0, intent,
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                            ? PendingIntent.FLAG_IMMUTABLE
+                            : PendingIntent.FLAG_ONE_SHOT
+            );
 
-        // Создаем канал
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            createNotificationChannel(nm);
+
+            // Создаем канал
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannel(nm);
+            }
+
+            // Тело непосредственно самого уведомления
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle(message.getData().getOrDefault("title", message.getNotification() != null ? message.getNotification().getTitle() : ""))
+                    .setContentText(message.getData().getOrDefault("body", message.getNotification() != null ? message.getNotification().getBody() : ""))
+                    .setSmallIcon(R.drawable.weather)
+                    .setAutoCancel(true)
+                    .setContentIntent(pi)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+            nm.notify(notificationId, builder.build());
         }
+        else{
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle(message.getData().getOrDefault("title", message.getNotification() != null ? message.getNotification().getTitle() : ""))
+                    .setContentText(message.getData().getOrDefault("body", message.getNotification() != null ? message.getNotification().getBody() : ""))
+                    .setSmallIcon(R.drawable.weather)
+                    .setAutoCancel(true)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL);
 
-        // Тело непосредственно самого уведомления
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(message.getData().getOrDefault("title", message.getNotification() != null ? message.getNotification().getTitle() : ""))
-                .setContentText(message.getData().getOrDefault("body", message.getNotification() != null ? message.getNotification().getBody() : ""))
-                .setSmallIcon(R.drawable.weather)
-                .setAutoCancel(true)
-                .setContentIntent(pi)
-                .setDefaults(NotificationCompat.DEFAULT_ALL);
-
-        nm.notify(notificationId, builder.build());
+            nm.notify(notificationId, builder.build());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

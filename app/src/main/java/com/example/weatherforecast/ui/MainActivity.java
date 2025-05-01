@@ -1,4 +1,5 @@
 package com.example.weatherforecast.ui;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,7 +9,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
@@ -22,7 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.LiveData;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -39,6 +40,7 @@ import com.example.weatherforecast.data.entities.WeatherData;
 import com.example.weatherforecast.model.Weather;
 import com.example.weatherforecast.repository.WeatherRepository;
 import com.example.weatherforecast.ui.adapter.WeatherAdapter;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -52,9 +54,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.example.weatherforecast.data.notifications.MyFirebaseService;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,21 +74,26 @@ public class MainActivity extends AppCompatActivity {
 
     private WeatherRepository weatherRepository;
 
-    @SuppressLint("WrongThread")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    //@SuppressLint("WrongThread")
+    //@Override
+    /*protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
         // Перенос clearAllTables в фоновый поток
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+       *//* ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             WeatherDataDao weatherDataDao = AppDatabase.getInstance(getApplicationContext()).weatherDataDao();
-            weatherDataDao.deleteOldData(System.currentTimeMillis() - 24 * 60 * 60 * 1000); // Удаление данных старше 24 часов
+            //weatherDataDao.deleteOldData(System.currentTimeMillis() - 24 * 60 * 60 * 1000); // Удаление данных старше 24 часов
         });
-        executor.shutdown();
+        executor.shutdown();*//*
 
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
@@ -131,21 +135,24 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setAdapter(weatherAdapter);
-
+*//*
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         // Инициализация репозитория
         weatherRepository = new WeatherRepository(this);
 
         weatherRepository = new WeatherRepository(this);
-        AppDatabase.getInstance(this).clearAllTables(); // Очистка таблиц
+
+       *//**//* Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase.getInstance(this).clearAllTables();
+        });*//**//*
         weatherRepository.insertTestData();
 
         // Добавляем тестовые данные (если нужно)
         weatherRepository.insertTestData();
 
         // Наблюдаем за данными и выводим их в консоль
-        observeDatabase();
+        observeDatabase();*//*
 
         // Остальной код (проверка разрешений, обработчики и т.д.) остается без изменений
         setDynamicBackground();
@@ -189,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
-    }
+    }*/
 
     private void observeDatabase() {
         // Вывод местоположений

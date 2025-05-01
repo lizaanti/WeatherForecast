@@ -1,11 +1,9 @@
 package com.example.weatherforecast.data.entities;
 
-import androidx.room.Dao;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Index;
-import androidx.room.Insert;
-import androidx.room.ColumnInfo;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "forecasts",
@@ -15,70 +13,72 @@ import androidx.room.PrimaryKey;
                 onDelete = ForeignKey.CASCADE),
 indices = {@Index("weather_data_id")})
 public class Forecast {
+
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public Integer id;
 
     @ColumnInfo(name = "weather_data_id")
-    public int weatherDataId;
+    public Integer weatherDataId;
 
     @ColumnInfo(name = "date_time")
     public String dateTime;
 
     @ColumnInfo(name = "temperature")
-    public double temperature;
+    public Double temperature;
 
     @ColumnInfo(name = "feels_like")
-    public double feelsLike;
+    public Double feelsLike;
 
     @ColumnInfo(name = "weather_icon")
     public String weatherIcon;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getWeatherDataId() {
-        return weatherDataId;
-    }
-
-    public void setWeatherDataId(int weatherDataId) {
+    public void setWeatherDataId(Integer weatherDataId) {
         this.weatherDataId = weatherDataId;
-    }
-
-    public String getDateTime() {
-        return dateTime;
     }
 
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
     }
 
-    public double getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(double temperature) {
+    public void setTemperature(Double temperature) {
         this.temperature = temperature;
     }
 
-    public double getFeelsLike() {
-        return feelsLike;
-    }
-
-    public void setFeelsLike(double feelsLike) {
+    public void setFeelsLike(Double feelsLike) {
         this.feelsLike = feelsLike;
-    }
-
-    public String getWeatherIcon() {
-        return weatherIcon;
     }
 
     public void setWeatherIcon(String weatherIcon) {
         this.weatherIcon = weatherIcon;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public Integer getWeatherDataId() {
+        return weatherDataId;
+    }
+
+    public String getDateTime() {
+        return dateTime;
+    }
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public Double getFeelsLike() {
+        return feelsLike;
+    }
+
+    public String getWeatherIcon() {
+        return weatherIcon;
+    }
+
 }
+

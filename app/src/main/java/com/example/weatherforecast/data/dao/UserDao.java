@@ -11,8 +11,10 @@ import com.example.weatherforecast.data.entities.User;
 
 @Dao
 public interface UserDao {
-    @Insert(onConflict = REPLACE) long insert(User u);
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1") User findByEmail(String email);
+    @Insert(onConflict = REPLACE)
+    Long insert(User u);
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    User findByEmail(String email);
     @Update
     void update(User u);
 }

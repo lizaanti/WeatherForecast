@@ -9,31 +9,28 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "locations")
 public class Location {
     @PrimaryKey(autoGenerate = true)
-    public Integer id;
+    public int id;
 
     @ColumnInfo(name = "city_name")
     public String cityName;
 
     @ColumnInfo(name = "latitude")
-    public Double latitude;
+    public double latitude;
 
     @ColumnInfo(name = "longitude")
-    public Double longitude;
+    public double longitude;
 
     @ColumnInfo(name = "is_favorite")
     public boolean isFavorite;
 
-    public Location(@NonNull String cityName, Double latitude, Double longitude, boolean isFavorite) {
+    public Location(int id, String cityName, double latitude, double longitude, boolean isFavorite) {
+        this.id = id;
         this.cityName = cityName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.isFavorite = isFavorite;
     }
 
-    // Пустой конструктор для Room
-    public Location() {}
-
-    // Геттеры и сеттеры
     public int getId() {
         return id;
     }
@@ -73,5 +70,8 @@ public class Location {
     public void setFavorite(boolean favorite) {
         isFavorite = favorite;
     }
+
+    // Пустой конструктор для Room
+    public Location() {}
 
 }

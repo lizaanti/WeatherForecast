@@ -1,5 +1,7 @@
 package com.example.weatherforecast.data.entities;
 
+import android.widget.ImageView;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
@@ -13,43 +15,62 @@ childColumns = "location_id",
 onDelete = ForeignKey.CASCADE),
 indices = {@Index("location_id")})
 public class WeatherData {
-    public Integer getId() {
+
+
+    public WeatherData() {
+
+    }
+
+    public WeatherData(int id, int locationId, double temperature, double humidity, int pressure, String weatherIcon, double windSpeed, String cityName, long timestamp, String newField) {
+        this.id = id;
+        this.locationId = locationId;
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        this.weatherIcon = weatherIcon;
+        this.windSpeed = windSpeed;
+        this.cityName = cityName;
+        this.timestamp = timestamp;
+        this.newField = newField;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public Integer getLocationId() {
+    public int getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Integer locationId) {
+    public void setLocationId(int locationId) {
         this.locationId = locationId;
     }
 
-    public Double getTemperature() {
+    public double getTemperature() {
         return temperature;
     }
 
-    public void setTemperature(Double temperature) {
+    public void setTemperature(double temperature) {
         this.temperature = temperature;
     }
 
-    public Double getHumidity() {
+    public double getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(Double humidity) {
+    public void setHumidity(double humidity) {
         this.humidity = humidity;
     }
 
-    public Integer getPressure() {
+    public int getPressure() {
         return pressure;
     }
 
-    public void setPressure(Integer pressure) {
+    public void setPressure(int pressure) {
         this.pressure = pressure;
     }
 
@@ -61,11 +82,27 @@ public class WeatherData {
         this.weatherIcon = weatherIcon;
     }
 
-    public Long getTimestamp() {
+    public double getWindSpeed() {
+        return windSpeed;
+    }
+
+    public void setWindSpeed(double windSpeed) {
+        this.windSpeed = windSpeed;
+    }
+
+    public String getCityName() {
+        return cityName;
+    }
+
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
+    public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Long timestamp) {
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -78,27 +115,35 @@ public class WeatherData {
     }
 
     @PrimaryKey(autoGenerate = true)
-    public Integer id;
+    public int id;
 
     @ColumnInfo(name = "location_id")
-    public Integer locationId;
+    public int locationId;
 
     @ColumnInfo(name = "temperature")
-    public Double temperature;
+    public double temperature;
 
     @ColumnInfo(name = "humidity")
-    public Double humidity;
+    public double humidity;
 
     @ColumnInfo(name = "pressure")
-    public Integer pressure;
+    public int pressure;
 
     @ColumnInfo(name = "weather_icon")
     public String weatherIcon;
 
+    @ColumnInfo(name = "windSpeed")
+    public double windSpeed;
+
+    @ColumnInfo(name = "cityName")
+    public String cityName;
+
     @ColumnInfo(name = "timestamp")
-    public Long timestamp;
+    public long timestamp;
 
     @ColumnInfo(name = "new_field")
     public String newField;
+
+
 
 }

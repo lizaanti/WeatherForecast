@@ -15,6 +15,9 @@ public class Weather implements Serializable {
         this.feelsLike = feelsLike;
     }
 
+    public Weather(String time, String iconUrl, String icon) {
+    }
+
     public String getTime() {
         return time;
     }

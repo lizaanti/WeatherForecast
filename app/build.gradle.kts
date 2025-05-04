@@ -37,7 +37,6 @@ android {
 
 dependencies {
 
-
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.appcompat)
@@ -46,6 +45,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.androidx.room.common)
     implementation(libs.support.annotations)
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

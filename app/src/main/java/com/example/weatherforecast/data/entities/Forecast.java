@@ -15,28 +15,28 @@ indices = {@Index("weather_data_id")})
 public class Forecast {
 
     @PrimaryKey(autoGenerate = true)
-    public Integer id;
+    public int id;
 
     @ColumnInfo(name = "weather_data_id")
-    public Integer weatherDataId;
+    public int weatherDataId;
 
     @ColumnInfo(name = "date_time")
     public String dateTime;
 
     @ColumnInfo(name = "temperature")
-    public Double temperature;
+    public double temperature;
 
     @ColumnInfo(name = "feels_like")
-    public Double feelsLike;
+    public double feelsLike;
 
     @ColumnInfo(name = "weather_icon")
     public String weatherIcon;
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public void setWeatherDataId(Integer weatherDataId) {
+    public void setWeatherDataId(int weatherDataId) {
         this.weatherDataId = weatherDataId;
     }
 
@@ -44,11 +44,11 @@ public class Forecast {
         this.dateTime = dateTime;
     }
 
-    public void setTemperature(Double temperature) {
+    public void setTemperature(double temperature) {
         this.temperature = temperature;
     }
 
-    public void setFeelsLike(Double feelsLike) {
+    public void setFeelsLike(double feelsLike) {
         this.feelsLike = feelsLike;
     }
 
@@ -56,11 +56,11 @@ public class Forecast {
         this.weatherIcon = weatherIcon;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public Integer getWeatherDataId() {
+    public int getWeatherDataId() {
         return weatherDataId;
     }
 
@@ -68,11 +68,11 @@ public class Forecast {
         return dateTime;
     }
 
-    public Double getTemperature() {
+    public double getTemperature() {
         return temperature;
     }
 
-    public Double getFeelsLike() {
+    public double getFeelsLike() {
         return feelsLike;
     }
 

@@ -20,4 +20,11 @@ public interface ForecastDao {
 
     @Query("SELECT * FROM forecasts")
     LiveData<List<Forecast>> getAllForecasts();
+
+    @Query("SELECT * FROM forecasts WHERE weather_data_id = :weatherDataId")
+    LiveData<List<Forecast>> getForecastsByWeatherDataId(int weatherDataId);
+
+    @Insert
+    void insertAll(List<Forecast> forecasts);
+
 }

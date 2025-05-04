@@ -10,8 +10,14 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/night_bg"
     android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/night_bg"
+        android:scaleType="center"
+        android:layout_gravity="center" />
         <LinearLayout
             android:id="@+id/HomePage"
             android:layout_width="match_parent"

@@ -7,8 +7,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,14 +33,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherforecast.R;
-import com.example.weatherforecast.data.AppDatabase;
-import com.example.weatherforecast.data.dao.WeatherDataDao;
 import com.example.weatherforecast.data.entities.Forecast;
-import com.example.weatherforecast.data.entities.UserPreferences;
-import com.example.weatherforecast.data.entities.WeatherData;
 import com.example.weatherforecast.model.Weather;
 import com.example.weatherforecast.repository.WeatherRepository;
 import com.example.weatherforecast.ui.adapter.WeatherAdapter;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
@@ -61,7 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_KEY = "355be3e73060ee9814fdfbee14e40a1a";
     private static final String TAG = "MainActivity";
 
-    private TextView cityName, tempResult, forecastResult, feels;
+    private TextView cityName;
+    private TextView tempResult;
+    private TextView forecastResult;
+    private TextView feels;
     private ProgressBar progressBar;
     private SearchView searchView;
     private LocationManager locationManager;
@@ -71,51 +73,19 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ArrayList<Weather> forecastList;
     private WeatherAdapter weatherAdapter;
+    private List<Forecast> savedForecasts = new ArrayList<>();
+    private RequestQueue requestQueue;
+    private FusedLocationProviderClient fusedLocationClient;
 
     private WeatherRepository weatherRepository;
 
-    //@SuppressLint("WrongThread")
-    //@Override
-    /*protected void onCreate(Bundle savedInstanceState) {
+    @SuppressLint("WrongThread")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-            }
-        }
-        // Перенос clearAllTables в фоновый поток
-       *//* ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            WeatherDataDao weatherDataDao = AppDatabase.getInstance(getApplicationContext()).weatherDataDao();
-            //weatherDataDao.deleteOldData(System.currentTimeMillis() - 24 * 60 * 60 * 1000); // Удаление данных старше 24 часов
-        });
-        executor.shutdown();*//*
-
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        String token = task.getResult();
-                        //Log.d(TAG, "FCM Token: " + token);
-                        Log.d("FCM_TOKEN", "Token:" + token);
-                   }
-                   else{
-                       Log.w(TAG, "Fetching FCM token failed", task.getException());
-                    }
-                });
-
-        // Примерная подписка на тему weather_updates
-        FirebaseMessaging.getInstance()
-                .subscribeToTopic("weather_updates")
-                .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        Log.d(TAG, "Subscribed to weather_updates");
-                    }
-                });
-
         // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);
         feels = findViewById(R.id.ConditionTV);
@@ -129,41 +99,66 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.TV1);
         tvWind = findViewById(R.id.TV3);
         tvPressure = findViewById(R.id.TV5);
-
         forecastList = new ArrayList<>();
         weatherAdapter = new WeatherAdapter(this, forecastList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false));
+        //locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         recyclerView.setAdapter(weatherAdapter);
-*//*
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        // Инициализация репозитория
         weatherRepository = new WeatherRepository(this);
+        requestQueue = Volley.newRequestQueue(this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        weatherRepository = new WeatherRepository(this);
+        // Проверка на подключение к интернету
+        if(!isNetworkAvailable()){
+            loadOfflineData();
+        }
+        else{
+            getLocationAndWeather();
+        }
 
-       *//**//* Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase.getInstance(this).clearAllTables();
-        });*//**//*
-        weatherRepository.insertTestData();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
 
-        // Добавляем тестовые данные (если нужно)
-        weatherRepository.insertTestData();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        Log.d("FCM_TOKEN", "Token:" + task.getResult());
+                    }
+                    /*else{
+                        Log.w(TAG, "Fetching FCM token failed", task.getException());
+                    }*/
+                });
 
-        // Наблюдаем за данными и выводим их в консоль
-        observeDatabase();*//*
+        // Примерная подписка на тему weather_updates
+        FirebaseMessaging.getInstance()
+                .subscribeToTopic("weather_updates")
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        Log.d(TAG, "Subscribed to weather_updates");
+                    }
+                });
 
-        // Остальной код (проверка разрешений, обработчики и т.д.) остается без изменений
         setDynamicBackground();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_CODE);
+        } else {
+            getLocationAndWeather();
+        }*/
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSION_CODE);
         } else {
             getLocationAndWeather();
@@ -196,93 +191,24 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
-    }*/
-
-    private void observeDatabase() {
-        // Вывод местоположений
-        weatherRepository.getAllLocations().observe(this, locations -> {
-            Log.d(TAG, "=== Locations Table ===");
-            if (locations == null || locations.isEmpty()) {
-                Log.d(TAG, "No locations found.");
-            } else {
-                for (com.example.weatherforecast.data.entities.Location location : locations) {
-                    Log.d(TAG, "ID: " + location.getId() +
-                            ", City: " + location.getCityName() +
-                            ", Latitude: " + location.getLatitude() +
-                            ", Longitude: " + location.getLongitude() +
-                            ", Is Favorite: " + location.isFavorite());
-                }
-            }
-        });
-
-        // Вывод данных о погоде
-        weatherRepository.getAllWeatherData().observe(this, weatherDataList -> {
-            Log.d(TAG, "=== WeatherData Table ===");
-            if (weatherDataList == null || weatherDataList.isEmpty()) {
-                Log.d(TAG, "No weather data found.");
-            } else {
-                for (WeatherData weatherData : weatherDataList) {
-                    Log.d(TAG, "ID: " + weatherData.getId() +
-                            ", Location ID: " + weatherData.getLocationId() +
-                            ", Temperature: " + weatherData.getTemperature() +
-                            ", Humidity: " + weatherData.getHumidity() +
-                            ", Pressure: " + weatherData.getPressure() +
-                            ", Weather Icon: " + weatherData.getWeatherIcon() +
-                            ", Timestamp: " + weatherData.getTimestamp());
-                }
-            }
-        });
-
-        // Вывод прогнозов
-        weatherRepository.getAllForecasts().observe(this, forecasts -> {
-            Log.d(TAG, "=== Forecasts Table ===");
-            if (forecasts == null || forecasts.isEmpty()) {
-                Log.d(TAG, "No forecasts found.");
-            } else {
-                for (Forecast forecast : forecasts) {
-                    Log.d(TAG, "ID: " + forecast.getId() +
-                            ", Weather Data ID: " + forecast.getWeatherDataId() +
-                            ", DateTime: " + forecast.getDateTime() +
-                            ", Temperature: " + forecast.getTemperature() +
-                            ", Feels Like: " + forecast.getFeelsLike() +
-                            ", Weather Icon: " + forecast.getWeatherIcon());
-                }
-            }
-        });
-
-        // Вывод настроек
-        weatherRepository.getAllPreferences().observe(this, preferencesList -> {
-            Log.d(TAG, "=== UserPreferences Table ===");
-            if (preferencesList == null || preferencesList.isEmpty()) {
-                Log.d(TAG, "No preferences found.");
-            } else {
-                for (UserPreferences preferences : preferencesList) {
-                    Log.d(TAG, "ID: " + preferences.getId() +
-                            ", Temperature Unit: " + preferences.getTemperatureUnit() +
-                            ", Wind Speed Unit: " + preferences.getWindSpeedUnit() +
-                            ", Notifications Enabled: " + preferences.isNotificationsEnabled());
-                }
-            }
-        });
     }
 
-    // Остальной код (setDynamicBackground, getLocationAndWeather и т.д.) остается без изменений
-    private void setDynamicBackground() {
-        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        int backgroundResId;
-        if (hour >= 6 && hour < 12) {
-            backgroundResId = R.drawable.day_bg;
-        } else if (hour >= 12 && hour < 18) {
-            backgroundResId = R.drawable.eve_bg;
-        } else {
-            backgroundResId = R.drawable.night_bg;
+    @Override
+    protected void onStop(){
+        super.onStop();
+        if(requestQueue != null){
+            requestQueue.cancelAll("weatherRequest");
         }
-        LinearLayout mainLayout = findViewById(R.id.main);
-        mainLayout.setBackgroundResource(backgroundResId);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
     private void getLocationAndWeather() {
-        try {
+        /*try {
             Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if (location != null) {
                 String city = getCityName(location.getLongitude(), location.getLatitude());
@@ -293,9 +219,27 @@ public class MainActivity extends AppCompatActivity {
         } catch (SecurityException e) {
             e.printStackTrace();
             Toast.makeText(this, "Ошибка доступа к местоположению", Toast.LENGTH_SHORT).show();
+        }*/
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        if(location != null){
+                            String city = getCityName(location.getLongitude(), location.getLatitude());
+                            getWeatherInfo(city);
+                        }else{
+                            Toast.makeText(this, "Неудалось получить местположение. Введите город вручную.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Ошибка определения местоположения.", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    });
+        }else{
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_CODE);
         }
     }
-
     private String getCityName(double longitude, double latitude) {
         String cityNameStr = "Не найдено";
         Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
@@ -321,8 +265,6 @@ public class MainActivity extends AppCompatActivity {
         String forecastWeatherUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + city +
                 "&appid=" + API_KEY + "&units=metric&lang=ru";
 
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-
         JsonObjectRequest currentWeatherRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 currentWeatherUrl,
@@ -337,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
                             "Ошибка получения данных текущей погоды.", Toast.LENGTH_SHORT).show();
                 }
         );
-
+        currentWeatherRequest.setTag("weatherRequest"); // Установка тега для метода onStop()
         JsonObjectRequest forecastWeatherRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 forecastWeatherUrl,
@@ -352,11 +294,18 @@ public class MainActivity extends AppCompatActivity {
                             "Ошибка получения данных прогноза.", Toast.LENGTH_SHORT).show();
                 }
         );
+        //currentWeatherRequest.setTag("weatherRequest");
+        forecastWeatherRequest.setTag("weatherRequest");
 
+        if (requestQueue != null) {
         requestQueue.add(currentWeatherRequest);
         requestQueue.add(forecastWeatherRequest);
+        } else {
+            Toast.makeText(this, "Ошибка: RequestQueue не инициализирована", Toast.LENGTH_LONG).show();
+        }
     }
 
+    @SuppressLint("SetTextI18n")
     private void parseCurrentWeatherResponse(JSONObject response, String city) {
         try {
             JSONObject mainObj = response.getJSONObject("main");
@@ -389,29 +338,113 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,
                     "Ошибка обработки данных текущей погоды.", Toast.LENGTH_SHORT).show();
         }
+
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void parseForecastWeatherResponse(JSONObject response) {
         try {
             JSONArray list = response.getJSONArray("list");
             forecastList.clear();
+            savedForecasts.clear();
+
             for (int i = 0; i < list.length(); i += 8) {
                 JSONObject forecastItem = list.getJSONObject(i);
                 String dateTime = forecastItem.getString("dt_txt").split(" ")[0];
                 JSONObject mainObj = forecastItem.getJSONObject("main");
                 int temp = (int) Math.round(mainObj.getDouble("temp"));
-                String feelsLike = String.valueOf((int) Math.round(mainObj.getDouble("feels_like")));
+                int feelsLike = (int) Math.round(mainObj.getDouble("feels_like"));
                 String icon = forecastItem.getJSONArray("weather")
                         .getJSONObject(0).getString("icon");
                 String iconUrl = "https://openweathermap.org/img/wn/" + icon + "@2x.png";
-                forecastList.add(new Weather(dateTime, String.valueOf(temp), iconUrl, feelsLike));
+                forecastList.add(new Weather(dateTime, String.valueOf(temp), iconUrl, String.valueOf(feelsLike)));
+
+                Forecast forecast = new Forecast();
+                forecast.setDateTime(dateTime);
+                forecast.setTemperature((double) temp);
+                forecast.setFeelsLike((double) feelsLike);
+                forecast.setWeatherIcon(icon);
+                savedForecasts.add(forecast);
             }
             weatherAdapter.notifyDataSetChanged();
+
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(() -> weatherRepository.insertForecasts(savedForecasts));
+            executor.shutdown();
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(this,
                     "Ошибка обработки данных прогноза погоды.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
+    private void loadOfflineData(){
+        weatherRepository.getAllForecasts().observe(this, forecasts -> {
+            if(forecasts != null){
+                forecastList.clear();
+                for(Forecast f : forecasts){
+                    if(f == null) continue;
+
+                    String date = f.getDateTime() != null ? f.getDateTime() : "";
+                    String temp = String.valueOf(f.getTemperature()) != null ? String.valueOf(f.getTemperature()) : "";
+                    String feels = String.valueOf(f.getFeelsLike()) != null ? String.valueOf(f.getFeelsLike()) : "";
+
+                    String iconCode = f.getWeatherIcon();
+                    String iconUrl = (iconCode != null && !iconCode.isEmpty())
+                            ? "https://openweathermap.org/img/wn/" + iconCode + "@2x.png"
+                            : null;
+                    forecastList.add(new Weather(date, temp, iconUrl, feels));
+                }
+                if(weatherAdapter != null){
+                    weatherAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+        weatherRepository.getMostRecentWeather().observe(this, weatherData ->  {
+                if(weatherData != null){
+                    String city = weatherData.getCityName() != null ? weatherData.getCityName() : "N/A";
+                    cityName.setText(city);
+
+                    String temperature = String.valueOf(weatherData.getTemperature()) != null ? String.valueOf(weatherData.getTemperature()) : "0";
+                    tempResult.setText(temperature + " °C");
+
+                    String humidity = String.valueOf(weatherData.getHumidity()) != null ? String.valueOf(weatherData.getHumidity()) : "0";
+                    tvHumidity.setText(humidity + " %");
+
+                    String wind = String.valueOf(weatherData.getWindSpeed()) != null ? String.valueOf(weatherData.getWindSpeed()) : "0";
+                    tvWind.setText(wind + " м/с");
+
+                    String pressure = String.valueOf(weatherData.getPressure()) != null ? String.valueOf(weatherData.getPressure()) : "0";
+                    tvPressure.setText(pressure + " hPa");
+
+                    String iconUrl = weatherData.getWeatherIcon();
+                    if(iconUrl != null && !iconUrl.isEmpty()){
+                        Picasso.get()
+                                .load(iconUrl)
+                                .placeholder(R.drawable.weather)
+                                .into(viewIcon);
+                    }else{
+                        viewIcon.setImageResource(R.drawable.weather);
+                    }
+
+                }
+        });
+
+    }
+
+    private void setDynamicBackground() {
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int backgroundResId;
+        if (hour >= 6 && hour < 12) {
+            backgroundResId = R.drawable.day_bg;
+        } else if (hour >= 12 && hour < 18) {
+            backgroundResId = R.drawable.eve_bg;
+        } else {
+            backgroundResId = R.drawable.night_bg;
+        }
+        LinearLayout mainLayout = findViewById(R.id.main);
+        mainLayout.setBackgroundResource(backgroundResId);
     }
 
     @Override
@@ -424,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 getLocationAndWeather();
             } else {
                 Toast.makeText(this,
-                        "Разрешение на доступ к местоположению необходимо.", Toast.LENGTH_SHORT).show();
+                        "Разрешение на доступ к местоположению необходимо.", Toast.LENGTH_LONG).show();
             }
         }
     }

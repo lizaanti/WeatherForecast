@@ -3,8 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/cloudcloud">
+    android:padding="16dp">
+
+    <ImageView
+        android:layout_width="395dp"
+        android:layout_height="668dp"
+        android:layout_gravity="center"
+        android:scaleType="center"
+        android:src="@drawable/other"/>
 
     <TextView
         android:id="@+id/detailTitle"

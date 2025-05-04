@@ -93,4 +93,27 @@ public class WeatherRepository {
         return database.forecastDao().getForecastsByWeatherDataId(weatherDataId);
     }
 
+    public WeatherData getMostRecentWeatherSync() {
+        return database.weatherDataDao().getMostRecentWeatherSync();
+    }
+
+    public String getCurrentConditionString() {
+        WeatherData wd = getMostRecentWeatherSync();
+        if (wd == null) {
+            return "SUNNY";
+        }
+        String icon = wd.getWeatherIcon();
+        if (icon.endsWith("n")) {
+            return "NIGHT";
+        }
+
+        if (icon.startsWith("01")) {
+            return "SUNNY";
+        }
+        if (icon.startsWith("13")) {
+            return "SNOW";
+        }
+        return "RAIN";
+    }
 }
+

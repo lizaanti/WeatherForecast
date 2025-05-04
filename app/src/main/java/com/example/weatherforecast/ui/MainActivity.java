@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -79,10 +81,43 @@ public class MainActivity extends AppCompatActivity {
 
     private WeatherRepository weatherRepository;
 
-    @SuppressLint("WrongThread")
+    @SuppressLint({"WrongThread", "MissingSuperCall"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<String> future = executor.submit(() -> weatherRepository.getCurrentConditionString());
+        String themeKey;
+        try {
+            themeKey = future.get();
+        } catch (Exception e) {
+            themeKey = "SUNNY";
+        }
+        executor.shutdown();
+
+        switch (themeKey) {
+            case "SUNNY":
+                setTheme(R.style.Theme_Sunny);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "SNOW":
+                setTheme(R.style.Theme_Snow);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "NIGHT":
+                setTheme(R.style.Theme_Night);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            default:  // RAIN
+                setTheme(R.style.Theme_Rainy);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        setContentView(R.layout.activity_main);
+
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
@@ -110,10 +145,9 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Проверка на подключение к интернету
-        if(!isNetworkAvailable()){
+        if (!isNetworkAvailable()) {
             loadOfflineData();
-        }
-        else{
+        } else {
             getLocationAndWeather();
         }
 
@@ -125,19 +159,16 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Log.d("FCM_TOKEN", "Token:" + task.getResult());
                     }
-                    /*else{
-                        Log.w(TAG, "Fetching FCM token failed", task.getException());
-                    }*/
                 });
 
         // Примерная подписка на тему weather_updates
         FirebaseMessaging.getInstance()
                 .subscribeToTopic("weather_updates")
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "Subscribed to weather_updates");
                     }
                 });
@@ -208,18 +239,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getLocationAndWeather() {
-        /*try {
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (location != null) {
-                String city = getCityName(location.getLongitude(), location.getLatitude());
-                getWeatherInfo(city);
-            } else {
-                Toast.makeText(this, "Не удалось определить местоположение", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Ошибка доступа к местоположению", Toast.LENGTH_SHORT).show();
-        }*/
+
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(location -> {
@@ -461,4 +481,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 }

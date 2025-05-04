@@ -29,6 +29,7 @@ public interface WeatherDataDao {
     @Query("SELECT * FROM weather_data ORDER BY timestamp DESC LIMIT 1")
     LiveData<WeatherData> getMostRecentWeather();
 
-
+    @Query("SELECT * FROM weather_data ORDER BY timestamp DESC LIMIT 1")
+    WeatherData getMostRecentWeatherSync();
 }
 

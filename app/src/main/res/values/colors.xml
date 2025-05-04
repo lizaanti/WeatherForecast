@@ -5,4 +5,33 @@
     <color name="lightBlue">#63AFD0</color>
     <color name="darkSky">#090974</color>
     <color name="hintColor">#313186</color>
+
+    <color name="primaryColor">#6200EE</color>
+    <color name="onPrimaryColor">#FFFFFF</color>
+    <color name="backgroundColor">#F5F5F5</color>
+    <color name="textColor">#212121</color>
+
+    <!-- Солнечная -->
+    <color name="sunnyPrimary">#FFEA00</color>
+    <color name="onSunnyPrimary">#000000</color>
+    <color name="sunnyBackground">#FFFDE7</color>
+    <color name="sunnyText">#000000</color>
+
+    <!-- Пасмурная/дождь -->
+    <color name="rainyPrimary">#546E7A</color>
+    <color name="onRainyPrimary">#FFFFFF</color>
+    <color name="rainyBackground">#ECEFF1</color>
+    <color name="rainyText">#263238</color>
+
+    <!-- Ночь -->
+    <color name="nightPrimary">#212121</color>
+    <color name="onNightPrimary">#FFFFFF</color>
+    <color name="nightBackground">#121212</color>
+    <color name="nightText">#E0E0E0</color>
+
+    <!-- Снег -->
+    <color name="snowPrimary">#81D4FA</color>
+    <color name="onSnowPrimary">#000000</color>
+    <color name="snowBackground">#E1F5FE</color>
+    <color name="snowText">#000000</color>
 </resources>

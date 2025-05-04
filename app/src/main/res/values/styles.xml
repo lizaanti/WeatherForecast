@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Базовая тема приложения с поддержкой DayNight -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- общий фон, текст и т.п. -->
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorOnPrimary">@color/onPrimaryColor</item>
+        <item name="android:textColor">@color/textColor</item>
+    </style>
+
+    <!-- Солнечная тема (светлая с жёлтыми акцентами) -->
+    <style name="Theme.Sunny" parent="AppTheme">
+        <item name="colorPrimary">@color/sunnyPrimary</item>
+        <item name="colorOnPrimary">@color/onSunnyPrimary</item>
+        <item name="android:textColor">@color/sunnyText</item>
+    </style>
+
+    <!-- Дождливая/пасмурная тема (тёмная с серыми акцентами) -->
+    <style name="Theme.Rainy" parent="AppTheme">
+        <item name="colorPrimary">@color/rainyPrimary</item>
+        <item name="colorOnPrimary">@color/onRainyPrimary</item>
+        <item name="android:textColor">@color/rainyText</item>
+    </style>
+
+    <!-- Ночная тема (тёмная) -->
+    <style name="Theme.Night" parent="AppTheme">
+        <item name="colorPrimary">@color/nightPrimary</item>
+        <item name="colorOnPrimary">@color/onNightPrimary</item>
+        <item name="android:textColor">@color/nightText</item>
+    </style>
+
+    <!-- Снежная тема (светлая с голубыми акцентами) -->
+    <style name="Theme.Snow" parent="AppTheme">
+        <item name="colorPrimary">@color/snowPrimary</item>
+        <item name="colorOnPrimary">@color/onSnowPrimary</item>
+        <item name="android:textColor">@color/snowText</item>
+    </style>
+
+</resources>

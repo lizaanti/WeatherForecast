@@ -46,17 +46,16 @@ public class WeatherRepository {
 
     public void insertWeatherData(WeatherData weatherData, String cityName) {
         new Thread(() -> {
-            Location location = database.locationDao().getLocationByCityName(cityName);
-            if(location == null){
-                location = new Location();
-                location.setCityName(cityName);
-                database.locationDao().insert(location);
-                location = database.locationDao().getLocationByCityName(cityName);
-            }
-            if(location != null){
-                weatherData.setLocationId(location.getId());
-                weatherData.setTimestamp(System.currentTimeMillis());
                 database.weatherDataDao().insert(weatherData);
+        }).start();
+    }
+
+    public void insertLocation(Location location) {
+        new Thread(() -> {
+            try{
+                database.locationDao().insert(location);
+            }catch (Exception e){
+                Log.e(TAG, "Error insert forecasts.", e);
             }
         }).start();
     }

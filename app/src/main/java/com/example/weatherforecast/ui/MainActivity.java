@@ -35,6 +35,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.weatherforecast.R;
 import com.example.weatherforecast.data.entities.Forecast;
+import com.example.weatherforecast.data.entities.Location;
+import com.example.weatherforecast.data.entities.WeatherData;
 import com.example.weatherforecast.model.Weather;
 import com.example.weatherforecast.repository.WeatherRepository;
 import com.example.weatherforecast.ui.adapter.WeatherAdapter;
@@ -245,6 +247,14 @@ public class MainActivity extends AppCompatActivity {
                     .addOnSuccessListener(location -> {
                         if(location != null){
                             String city = getCityName(location.getLongitude(), location.getLatitude());
+
+                            Location entitiesLocation = new Location();
+                            entitiesLocation.setLatitude(location.getLatitude());
+                            entitiesLocation.setLongitude(location.getLongitude());
+                            entitiesLocation.setCityName(city);
+
+                            weatherRepository.insertLocation(entitiesLocation);
+
                             getWeatherInfo(city);
                         }else{
                             Toast.makeText(this, "Неудалось получить местположение. Введите город вручную.", Toast.LENGTH_SHORT).show();
@@ -344,6 +354,14 @@ public class MainActivity extends AppCompatActivity {
             tvWind.setText(Math.round(windSpeed) + " м/с");
             tvPressure.setText(pressure + " hPa");
 
+            WeatherData weatherData = new WeatherData();
+
+            weatherData.setCityName(city);
+            weatherData.setHumidity(humidity);
+            weatherData.setPressure(pressure);
+            weatherData.setTemperature(temp);
+            weatherData.setWindSpeed(windSpeed);
+
             JSONArray weatherArray = response.getJSONArray("weather");
             if (weatherArray.length() > 0) {
                 JSONObject weatherObj = weatherArray.getJSONObject(0);
@@ -352,7 +370,10 @@ public class MainActivity extends AppCompatActivity {
                 Picasso.get().load(iconUrl)
                         .placeholder(R.drawable.weather)
                         .into(viewIcon);
+                weatherData.setWeatherIcon(iconUrl);
             }
+
+            weatherRepository.insertWeatherData(weatherData, city);
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(this,

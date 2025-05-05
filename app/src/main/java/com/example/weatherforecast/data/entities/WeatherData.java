@@ -9,10 +9,6 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "weather_data",
-foreignKeys = @ForeignKey(entity = Location.class,
-parentColumns = "id",
-childColumns = "location_id",
-onDelete = ForeignKey.CASCADE),
 indices = {@Index("location_id")})
 public class WeatherData {
 

@@ -17,7 +17,7 @@ import com.example.weatherforecast.data.entities.UserPreferences;
 import com.example.weatherforecast.data.entities.WeatherData;
 
 @Database(entities = {UserPreferences.class, Location.class, WeatherData.class, Forecast.class},
-        version = 3,
+        version = 1,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract UserPreferencesDao userPreferencesDao();

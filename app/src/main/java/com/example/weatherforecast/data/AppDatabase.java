@@ -17,7 +17,7 @@ import com.example.weatherforecast.data.entities.UserPreferences;
 import com.example.weatherforecast.data.entities.WeatherData;
 
 @Database(entities = {UserPreferences.class, Location.class, WeatherData.class, Forecast.class},
-        version = 1,
+        version = 3,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract UserPreferencesDao userPreferencesDao();
@@ -27,29 +27,12 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
 
-    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
-        @Override
-        public void migrate(SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE UserPreferences ADD COLUMN update_interval INTEGER NOT NULL DEFAULT 60");
-        }
-    };
-
-    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE weather_data ADD COLUMN new_field TEXT");
-        }
-    };
-
-    public static AppDatabase getInstance(Context context) {
+    public static AppDatabase getInstance(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(
-                                    context.getApplicationContext(),
-                                    AppDatabase.class,
-                                    "weather_database"
-                            )
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                                    AppDatabase.class, "app_database")
                             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .build();
                 }
@@ -57,4 +40,21 @@ public abstract class AppDatabase extends RoomDatabase {
         }
         return INSTANCE;
     }
+
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE weather_data ADD COLUMN new_field TEXT");
+        }
+    };
+
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE weather_data ADD COLUMN cityName TEXT");
+            database.execSQL("ALTER TABLE weather_data ADD COLUMN windSpeed REAL NOT NULL DEFAULT 0");
+            database.execSQL("DROP INDEX IF EXISTS index_weather_data_location_id");
+            database.execSQL("CREATE INDEX index_weather_data_location_id ON weather_data(location_id)");
+        }
+    };
 }

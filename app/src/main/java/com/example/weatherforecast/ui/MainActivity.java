@@ -87,34 +87,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<String> future = executor.submit(() -> weatherRepository.getCurrentConditionString());
-        String themeKey;
-        try {
-            themeKey = future.get();
-        } catch (Exception e) {
-            themeKey = "SUNNY";
-        }
-        executor.shutdown();
-
-        switch (themeKey) {
-            case "SUNNY":
-                setTheme(R.style.Theme_Sunny);
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case "SNOW":
-                setTheme(R.style.Theme_Snow);
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case "NIGHT":
-                setTheme(R.style.Theme_Night);
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            default:  // RAIN
-                setTheme(R.style.Theme_Rainy);
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -176,18 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         setDynamicBackground();
-
-        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSION_CODE);
-        } else {
-            getLocationAndWeather();
-        }*/
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -324,7 +284,6 @@ public class MainActivity extends AppCompatActivity {
                             "Ошибка получения данных прогноза.", Toast.LENGTH_SHORT).show();
                 }
         );
-        //currentWeatherRequest.setTag("weatherRequest");
         forecastWeatherRequest.setTag("weatherRequest");
 
         if (requestQueue != null) {

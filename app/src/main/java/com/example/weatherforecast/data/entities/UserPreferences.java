@@ -8,24 +8,24 @@ public class UserPreferences {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
+    @ColumnInfo(name = "notifications_enabled")
+    public boolean notificationsEnabled;
+
     @ColumnInfo(name = "temperature_unit")
     public String temperatureUnit;
 
     @ColumnInfo(name = "wind_speed_unit")
     public String windSpeedUnit;
 
-    @ColumnInfo(name = "notifications_enabled")
-    public boolean notificationsEnabled;
-
     @ColumnInfo(name = "update_interval")
     public int updateInterval;
 
-    public void setUpdateInterval(int updateInterval) {
-        this.updateInterval = updateInterval;
-    }
-
     public int getUpdateInterval() {
         return updateInterval;
+    }
+
+    public void setUpdateInterval(int updateInterval) {
+        this.updateInterval = updateInterval;
     }
 
     public int getId() {

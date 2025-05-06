@@ -9,8 +9,42 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "weather_data",
-indices = {@Index("location_id")})
+foreignKeys = @ForeignKey(entity = Location.class,
+parentColumns = "id",
+childColumns = "location_id",
+onDelete = ForeignKey.CASCADE),
+indices = @Index("location_id"))
 public class WeatherData {
+
+    @PrimaryKey(autoGenerate = true)
+    public Integer id;
+
+    @ColumnInfo(name = "location_id")
+    public int locationId;
+
+    @ColumnInfo(name = "temperature")
+    public double temperature;
+
+    @ColumnInfo(name = "humidity")
+    public double humidity;
+
+    @ColumnInfo(name = "pressure")
+    public int pressure;
+
+    @ColumnInfo(name = "weather_icon")
+    public String weatherIcon;
+
+    @ColumnInfo(name = "timestamp")
+    public long timestamp;
+
+    @ColumnInfo(name = "new_field")
+    public String newField;
+
+    @ColumnInfo(name = "cityName")
+    public String cityName;
+
+    @ColumnInfo(name = "windSpeed")
+    public double windSpeed;
 
 
     public WeatherData() {
@@ -30,52 +64,34 @@ public class WeatherData {
         this.newField = newField;
     }
 
-    public int getId() {
-        return id;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getLocationId() { return locationId; }
+    public void setLocationId(int locationId) { this.locationId = locationId; }
 
-    public int getLocationId() {
-        return locationId;
-    }
+    public double getTemperature() { return temperature; }
+    public void setTemperature(double temperature) { this.temperature = temperature; }
 
-    public void setLocationId(int locationId) {
-        this.locationId = locationId;
-    }
+    public double getHumidity() { return humidity; }
+    public void setHumidity(double humidity) { this.humidity = humidity; }
 
-    public double getTemperature() {
-        return temperature;
-    }
+    public int getPressure() { return pressure; }
+    public void setPressure(int pressure) { this.pressure = pressure; }
 
-    public void setTemperature(double temperature) {
-        this.temperature = temperature;
-    }
+    public String getWeatherIcon() { return weatherIcon; }
+    public void setWeatherIcon(String weatherIcon) { this.weatherIcon = weatherIcon; }
 
-    public double getHumidity() {
-        return humidity;
-    }
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
-    public void setHumidity(double humidity) {
-        this.humidity = humidity;
-    }
+    public String getNewField() { return newField; }
+    public void setNewField(String newField) { this.newField = newField; }
 
-    public int getPressure() {
-        return pressure;
-    }
+    public String getCityName() { return cityName; }
 
-    public void setPressure(int pressure) {
-        this.pressure = pressure;
-    }
-
-    public String getWeatherIcon() {
-        return weatherIcon;
-    }
-
-    public void setWeatherIcon(String weatherIcon) {
-        this.weatherIcon = weatherIcon;
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
     }
 
     public double getWindSpeed() {
@@ -85,61 +101,4 @@ public class WeatherData {
     public void setWindSpeed(double windSpeed) {
         this.windSpeed = windSpeed;
     }
-
-    public String getCityName() {
-        return cityName;
-    }
-
-    public void setCityName(String cityName) {
-        this.cityName = cityName;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getNewField() {
-        return newField;
-    }
-
-    public void setNewField(String newField) {
-        this.newField = newField;
-    }
-
-    @PrimaryKey(autoGenerate = true)
-    public int id;
-
-    @ColumnInfo(name = "location_id")
-    public int locationId;
-
-    @ColumnInfo(name = "temperature")
-    public double temperature;
-
-    @ColumnInfo(name = "humidity")
-    public double humidity;
-
-    @ColumnInfo(name = "pressure")
-    public int pressure;
-
-    @ColumnInfo(name = "weather_icon")
-    public String weatherIcon;
-
-    @ColumnInfo(name = "windSpeed")
-    public double windSpeed;
-
-    @ColumnInfo(name = "cityName")
-    public String cityName;
-
-    @ColumnInfo(name = "timestamp")
-    public long timestamp;
-
-    @ColumnInfo(name = "new_field")
-    public String newField;
-
-
-
 }

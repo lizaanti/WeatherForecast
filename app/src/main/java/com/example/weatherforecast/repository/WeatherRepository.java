@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherRepository {
-    private AppDatabase database;
+    private final AppDatabase database;
     private static final String TAG = "WeatherRepository";
 
     public WeatherRepository(Context context) {

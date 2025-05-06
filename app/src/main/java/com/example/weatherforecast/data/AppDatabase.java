@@ -46,6 +46,7 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE weather_data ADD COLUMN new_field TEXT");
         }
+
     };
 
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {

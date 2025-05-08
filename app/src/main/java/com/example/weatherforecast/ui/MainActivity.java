@@ -5,6 +5,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
@@ -13,6 +17,8 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,7 +29,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -56,7 +61,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Forecast> savedForecasts = new ArrayList<>();
     private RequestQueue requestQueue;
     private FusedLocationProviderClient fusedLocationClient;
+    private int orientation;
 
     private WeatherRepository weatherRepository;
 
@@ -435,6 +440,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setDynamicBackground() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+
         int backgroundResId;
         if (hour >= 6 && hour < 12) {
             backgroundResId = R.drawable.day_bg;
@@ -443,9 +449,20 @@ public class MainActivity extends AppCompatActivity {
         } else {
             backgroundResId = R.drawable.night_bg;
         }
-        LinearLayout mainLayout = findViewById(R.id.main);
-        mainLayout.setBackgroundResource(backgroundResId);
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), backgroundResId);
+        BitmapDrawable drawable = new BitmapDrawable(getResources(), bitmap);
+
+        drawable.setTileModeX(null);
+        drawable.setTileModeY(null);
+        drawable.setAntiAlias(true);
+
+        drawable.setGravity(Gravity.CENTER);
+
+        View root = findViewById(android.R.id.content);
+        root.setBackground(drawable);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,

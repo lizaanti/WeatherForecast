@@ -7,6 +7,7 @@ import android.widget.TextView;
 import androidx.lifecycle.LiveData;
 
 import com.example.weatherforecast.data.AppDatabase;
+import com.example.weatherforecast.data.dao.LocationDao;
 import com.example.weatherforecast.data.entities.Forecast;
 import com.example.weatherforecast.data.entities.Location;
 import com.example.weatherforecast.data.entities.UserPreferences;
@@ -39,14 +40,23 @@ public class WeatherRepository {
         return database.forecastDao().getAllForecasts();
     }
 
-    public LiveData<List<UserPreferences>> getAllPreferences() {
+    /*public LiveData<List<UserPreferences>> getAllPreferences() {
         return database.userPreferencesDao().getAllPreferences();
-    }
+    }*/
 
 
     public void insertWeatherData(WeatherData weatherData, String cityName) {
         new Thread(() -> {
-                database.weatherDataDao().insert(weatherData);
+            LocationDao locDao = database.locationDao();
+            Location loc = locDao.findByName(cityName);
+            if(loc == null){
+                loc = new Location();
+                loc.setCityName(cityName);
+                long newId = locDao.insert(loc);
+                loc.setId((int)newId);
+            }
+            weatherData.setLocationId(loc.getId());
+            database.weatherDataDao().insert(weatherData);
         }).start();
     }
 

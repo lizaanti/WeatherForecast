@@ -1,5 +1,6 @@
 package com.example.weatherforecast.data.entities;
 
+import android.support.annotation.NonNull;
 import android.widget.ImageView;
 
 import androidx.room.ColumnInfo;
@@ -9,11 +10,11 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "weather_data",
-foreignKeys = @ForeignKey(entity = Location.class,
-parentColumns = "id",
-childColumns = "location_id",
-onDelete = ForeignKey.CASCADE),
-indices = @Index("location_id"))
+        foreignKeys = @ForeignKey(entity = Location.class,
+                parentColumns = "id",
+                childColumns = "location_id",
+                onDelete = ForeignKey.CASCADE),
+        indices = @Index("location_id"))
 public class WeatherData {
 
     @PrimaryKey(autoGenerate = true)
@@ -41,6 +42,7 @@ public class WeatherData {
     public String newField;
 
     @ColumnInfo(name = "cityName")
+    @NonNull
     public String cityName;
 
     @ColumnInfo(name = "windSpeed")
@@ -51,7 +53,7 @@ public class WeatherData {
 
     }
 
-    public WeatherData(int id, int locationId, double temperature, double humidity, int pressure, String weatherIcon, double windSpeed, String cityName, long timestamp, String newField) {
+    public WeatherData(int id, int locationId, double temperature, double humidity, int pressure, String weatherIcon, double windSpeed,  @NonNull String cityName, long timestamp, String newField) {
         this.id = id;
         this.locationId = locationId;
         this.temperature = temperature;
@@ -88,9 +90,10 @@ public class WeatherData {
     public String getNewField() { return newField; }
     public void setNewField(String newField) { this.newField = newField; }
 
+    @androidx.annotation.NonNull
     public String getCityName() { return cityName; }
 
-    public void setCityName(String cityName) {
+    public void setCityName(@androidx.annotation.NonNull String cityName) {
         this.cityName = cityName;
     }
 

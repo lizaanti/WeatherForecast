@@ -17,17 +17,15 @@ import java.util.List;
 @Dao
 public interface LocationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(com.example.weatherforecast.data.entities.Location location);
-
-    @Query("SELECT * FROM locations WHERE is_favorite = 1")
-     LiveData<List<Location>> getFavoriteLocations();
+    long insert(com.example.weatherforecast.data.entities.Location location);
 
     @Query("SELECT * FROM locations")
     LiveData<List<com.example.weatherforecast.data.entities.Location>> getAllLocations();
 
     @Query("SELECT * FROM locations WHERE city_name = :cityName LIMIT 1")
-    Location getLocationByCityName(String cityName);
+    Location findByName(String cityName);
 
     @Delete
     void delete(com.example.weatherforecast.data.entities.Location location);
+
 }

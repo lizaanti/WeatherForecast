@@ -1,8 +1,6 @@
 package com.example.weatherforecast.data.dao;
 
 
-import android.widget.TextView;
-
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -28,4 +26,6 @@ public interface LocationDao {
     @Delete
     void delete(com.example.weatherforecast.data.entities.Location location);
 
+    @Query("SELECT * FROM locations")
+    Location getLatestLocation();
 }

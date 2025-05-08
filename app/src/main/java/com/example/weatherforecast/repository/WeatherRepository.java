@@ -40,6 +40,9 @@ public class WeatherRepository {
         return database.forecastDao().getAllForecasts();
     }
 
+    public Location getLatestLocation() {
+        return database.locationDao().getLatestLocation();
+    }
     /*public LiveData<List<UserPreferences>> getAllPreferences() {
         return database.userPreferencesDao().getAllPreferences();
     }*/

@@ -5,10 +5,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
@@ -17,12 +13,10 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +43,20 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
+import com.yandex.mapkit.MapKitFactory;
+import com.yandex.mapkit.geometry.Point;
+import com.yandex.mapkit.layers.GeoObjectTapEvent;
+import com.yandex.mapkit.layers.GeoObjectTapListener;
+import com.yandex.mapkit.map.CameraPosition;
+import com.yandex.mapkit.map.InputListener;
+import com.yandex.mapkit.map.Map;
+import com.yandex.mapkit.map.MapObject;
+import com.yandex.mapkit.map.MapObjectCollection;
+import com.yandex.mapkit.map.MapObjectDragListener;
+import com.yandex.mapkit.map.MapObjectTapListener;
+import com.yandex.mapkit.map.PlacemarkMapObject;
+import com.yandex.mapkit.mapview.MapView;
+import com.yandex.runtime.image.ImageProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -72,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView tempResult;
     private TextView forecastResult;
     private TextView feels;
-    private ProgressBar progressBar;
     private SearchView searchView;
     private LocationManager locationManager;
     private ImageView viewIcon;
@@ -84,28 +91,81 @@ public class MainActivity extends AppCompatActivity {
     private List<Forecast> savedForecasts = new ArrayList<>();
     private RequestQueue requestQueue;
     private FusedLocationProviderClient fusedLocationClient;
-    private int orientation;
 
     private WeatherRepository weatherRepository;
+    private MapView mapView;
+    private PlacemarkMapObject placemark;
 
     @SuppressLint({"WrongThread", "MissingSuperCall"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        setContentView(R.layout.activity_main);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
+        mapView = findViewById(R.id.mapview);
+        com.yandex.mapkit.map.Map map = mapView.getMap();
+        map.move(
+                new CameraPosition(
+                        new Point(55.751225, 37.62954),
+                        17.0f,
+                        150.0f,
+                        30.0f
+                )
+        );
+
+        final MapObjectTapListener placemarkTapListener = new MapObjectTapListener() {
+            @Override
+            public boolean onMapObjectTap(@NonNull MapObject mapObject, @NonNull Point point) {
+                Toast.makeText(
+                        MainActivity.this,
+                        "Нажмите на метку (" + point.getLongitude() + ", " + point.getLatitude() + ")",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return true;
+            }
+        };
+
+        ImageProvider imageProvider = ImageProvider.fromResource(this, R.drawable.mark);
+        MapObjectCollection mapObjects = mapView.getMap().getMapObjects();
+        mapView.getMap().setScrollGesturesEnabled(true);
+        mapView.getMap().setRotateGesturesEnabled(false);
+        mapView.getMap().setTiltGesturesEnabled(false);
+        placemark = mapObjects.addPlacemark(new Point(55.751225, 37.62954));
+        placemark.setIcon(imageProvider);
+        placemark.setOpacity(0.8f);
+        placemark.setDraggable(true);
+        placemark.addTapListener(placemarkTapListener);
+
+        map.addInputListener(new InputListener() {
+            @Override
+            public void onMapTap(Map map, Point point) {
+                placemark.setGeometry(point);
+                Toast.makeText(
+                        MainActivity.this,
+                        "Метка перемещена на: (" + point.getLatitude() + ", " + point.getLongitude() + ")",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+
+            @Override
+            public void onMapLongTap(Map map, Point point) {
+                placemark.setGeometry(point);
+                Toast.makeText(
+                        MainActivity.this,
+                        "Метка перемещена на: (" + point.getLatitude() + ", " + point.getLongitude() + ")",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+        Button shareButton = findViewById(R.id.shareButton);
+        shareButton.setOnClickListener(v -> shareLocation());
+
         // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);
         feels = findViewById(R.id.ConditionTV);
         tempResult = findViewById(R.id.Temperature);
         forecastResult = findViewById(R.id.forecastText);
-        progressBar = findViewById(R.id.Loading);
         searchView = findViewById(R.id.SearchView);
         recyclerView = findViewById(R.id.recycleV);
         viewIcon = findViewById(R.id.ViewIcon);
@@ -154,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
 
         setDynamicBackground();
 
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -192,11 +253,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart(){
+        super.onStart();
+        MapKitFactory.getInstance().onStart();
+        mapView.onStart();
+    }
+
+    @Override
     protected void onStop(){
         super.onStop();
         if(requestQueue != null){
             requestQueue.cancelAll("weatherRequest");
         }
+        mapView.onStop();
+        MapKitFactory.getInstance().onStop();
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
     }
 
     private boolean isNetworkAvailable() {
@@ -253,7 +328,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getWeatherInfo(String city) {
-        progressBar.setVisibility(android.view.View.VISIBLE);
 
         String currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city +
                 "&appid=" + API_KEY + "&units=metric&lang=ru";
@@ -265,11 +339,9 @@ public class MainActivity extends AppCompatActivity {
                 currentWeatherUrl,
                 null,
                 response -> {
-                    progressBar.setVisibility(android.view.View.GONE);
                     parseCurrentWeatherResponse(response, city);
                 },
                 error -> {
-                    progressBar.setVisibility(android.view.View.GONE);
                     Toast.makeText(MainActivity.this,
                             "Ошибка получения данных текущей погоды.", Toast.LENGTH_SHORT).show();
                 }
@@ -280,11 +352,9 @@ public class MainActivity extends AppCompatActivity {
                 forecastWeatherUrl,
                 null,
                 response -> {
-                    progressBar.setVisibility(android.view.View.GONE);
                     parseForecastWeatherResponse(response);
                 },
                 error -> {
-                    progressBar.setVisibility(android.view.View.GONE);
                     Toast.makeText(MainActivity.this,
                             "Ошибка получения данных прогноза.", Toast.LENGTH_SHORT).show();
                 }
@@ -440,7 +510,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setDynamicBackground() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-
         int backgroundResId;
         if (hour >= 6 && hour < 12) {
             backgroundResId = R.drawable.day_bg;
@@ -449,18 +518,23 @@ public class MainActivity extends AppCompatActivity {
         } else {
             backgroundResId = R.drawable.night_bg;
         }
+        LinearLayout mainLayout = findViewById(R.id.main);
+        mainLayout.setBackgroundResource(backgroundResId);
+    }
 
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), backgroundResId);
-        BitmapDrawable drawable = new BitmapDrawable(getResources(), bitmap);
+    private void shareLocation() {
+        Point point = placemark.getGeometry();
+        double longitude = point.getLongitude();
+        double latitude = point.getLatitude();
+        CameraPosition cameraPosition = mapView.getMap().getCameraPosition();
+        double zoom = cameraPosition.getZoom();
 
-        drawable.setTileModeX(null);
-        drawable.setTileModeY(null);
-        drawable.setAntiAlias(true);
+        String url = "https://yandex.ru/maps/?ll=" + longitude + "," + latitude + "&z=15";
 
-        drawable.setGravity(Gravity.CENTER);
-
-        View root = findViewById(android.R.id.content);
-        root.setBackground(drawable);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Посмотрите это место на карте: " + url);
+        startActivity(Intent.createChooser(shareIntent, "Поделиться местоположением"));
     }
 
 

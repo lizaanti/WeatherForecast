@@ -1,4 +1,4 @@
-<ScrollView xmlns:tools="http://schemas.android.com/tools"
+<androidx.core.widget.NestedScrollView xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
@@ -30,6 +30,8 @@
                 android:layout_marginTop="30dp"
                 android:padding="20dp"
                 android:textSize="18sp" />
+
+
 
             <LinearLayout
                 android:id="@+id/line1"
@@ -178,6 +180,7 @@
                 android:textSize="20sp"/>
             </LinearLayout>
 
+
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -188,11 +191,19 @@
 
         </LinearLayout>
 
-    <ProgressBar
-        android:id="@+id/Loading"
+    <com.yandex.mapkit.mapview.MapView
+        android:id="@+id/mapview"
+        android:layout_width="170pt"
+        android:layout_height="150pt"
+        android:background="#FF0000"
+        android:layout_gravity="center"/>
+    <Button
+        android:id="@+id/shareButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
+        android:text="Поделиться"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp" />
 </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

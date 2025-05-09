@@ -4,15 +4,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="8dp">
+    <ImageView
+        android:id="@+id/weather"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible" />
     <TextView
         android:id="@+id/temperature"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:text="25°C" />
+        android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/condition"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Солнечно" />
+        android:layout_height="wrap_content" />
 </LinearLayout>

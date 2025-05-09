@@ -26,6 +26,6 @@ public interface LocationDao {
     @Delete
     void delete(com.example.weatherforecast.data.entities.Location location);
 
-    @Query("SELECT * FROM locations")
+    @Query("SELECT * FROM locations ORDER BY id DESC LIMIT 1")
     Location getLatestLocation();
 }

@@ -139,13 +139,8 @@ public class MainActivity extends AppCompatActivity {
 
         map.addInputListener(new InputListener() {
             @Override
-            public void onMapTap(Map map, Point point) {
-                placemark.setGeometry(point);
-                Toast.makeText(
-                        MainActivity.this,
-                        "Метка перемещена на: (" + point.getLatitude() + ", " + point.getLongitude() + ")",
-                        Toast.LENGTH_SHORT
-                ).show();
+            public void onMapTap(@NonNull Map map, @NonNull Point point) {
+
             }
 
             @Override

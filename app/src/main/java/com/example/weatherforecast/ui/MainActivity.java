@@ -38,6 +38,7 @@ import com.example.weatherforecast.data.entities.Location;
 import com.example.weatherforecast.data.entities.WeatherData;
 import com.example.weatherforecast.model.Weather;
 import com.example.weatherforecast.repository.WeatherRepository;
+import com.example.weatherforecast.ui.adapter.HourlyForecastAdapter;
 import com.example.weatherforecast.ui.adapter.WeatherAdapter;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -75,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_CODE = 1;
     private static final String API_KEY = "355be3e73060ee9814fdfbee14e40a1a";
     private static final String TAG = "MainActivity";
+    private RecyclerView hourlyForecastRecycler;
+    private HourlyForecastAdapter hourlyForecastAdapter;
+    private WeatherRepository weatherRepository;
 
     private TextView cityName;
     private TextView tempResult;
@@ -92,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
     private RequestQueue requestQueue;
     private FusedLocationProviderClient fusedLocationClient;
 
-    private WeatherRepository weatherRepository;
     private MapView mapView;
     private PlacemarkMapObject placemark;
 
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
+
         mapView = findViewById(R.id.mapview);
         com.yandex.mapkit.map.Map map = mapView.getMap();
         map.move(
@@ -155,6 +159,13 @@ public class MainActivity extends AppCompatActivity {
         });
         Button shareButton = findViewById(R.id.shareButton);
         shareButton.setOnClickListener(v -> shareLocation());
+
+        hourlyForecastRecycler = findViewById(R.id.hourly_forecast_recycler);
+        hourlyForecastRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        hourlyForecastAdapter = new HourlyForecastAdapter(this);
+        hourlyForecastRecycler.setAdapter(hourlyForecastAdapter);
+        weatherRepository = new WeatherRepository(getApplicationContext());
+        fetchHourlyForecast();
 
         // Инициализация UI
         cityName = findViewById(R.id.CityNameTV);
@@ -532,6 +543,71 @@ public class MainActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(shareIntent, "Поделиться местоположением"));
     }
 
+    private void fetchHourlyForecast() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(() -> {
+            Location location = weatherRepository.getLatestLocation();
+            String city = (location != null && location.getCityName() != null && !location.getCityName().isEmpty())
+                    ? location.getCityName() : "Moscow";
+            Log.d(TAG, "Selected city: " + city);
+
+            runOnUiThread(() -> {
+                String url = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + API_KEY + "&units=metric&lang=ru";
+                Log.d(TAG, "API URL: " + url);
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                        response -> {
+                            Log.d(TAG, "API response: " + response.toString());
+                            List<HourlyForecast> forecasts = parseHourlyForecast(response);
+                            hourlyForecastAdapter.setForecasts(forecasts);
+                        },
+                        error -> {
+                            Log.e(TAG, "Volley error: " + (error.getMessage() != null ? error.getMessage() : "Unknown error"), error);
+                            // Показать ошибку в UI, если нужно
+                        });
+
+                RequestQueue queue = Volley.newRequestQueue(this);
+                queue.add(request);
+            });
+        });
+
+        executor.shutdown();
+    }
+
+    private List<HourlyForecast> parseHourlyForecast(JSONObject response) {
+        List<HourlyForecast> forecasts = new ArrayList<>();
+
+        try {
+            if (!response.has("list")) {
+                Log.e(TAG, "No 'list' array in response");
+                return forecasts;
+            }
+
+            JSONArray forecastArray = response.getJSONArray("list");
+            // Берем первые 8 записей (24 часа)
+            for (int i = 0; i < Math.min(8, forecastArray.length()); i++) {
+                JSONObject forecast = forecastArray.getJSONObject(i);
+
+                long timestamp = forecast.getLong("dt") * 1000; // Конвертируем в миллисекунды
+                JSONObject mainObj = forecast.getJSONObject("main");
+                double temp = mainObj.getDouble("temp");
+
+                String icon = "";
+                JSONArray weatherArray = forecast.getJSONArray("weather");
+                if (weatherArray.length() > 0) {
+                    icon = weatherArray.getJSONObject(0).getString("icon");
+                }
+
+                forecasts.add(new HourlyForecast(timestamp, temp, icon));
+                Log.d(TAG, "Parsed hour: time=" + timestamp + ", temp=" + temp + ", icon=" + icon);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON parsing error: " + e.getMessage(), e);
+        }
+
+        return forecasts;
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,

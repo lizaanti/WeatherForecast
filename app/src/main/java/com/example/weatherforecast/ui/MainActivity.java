@@ -44,16 +44,14 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
+import com.yandex.mapkit.Animation;
 import com.yandex.mapkit.MapKitFactory;
 import com.yandex.mapkit.geometry.Point;
-import com.yandex.mapkit.layers.GeoObjectTapEvent;
-import com.yandex.mapkit.layers.GeoObjectTapListener;
 import com.yandex.mapkit.map.CameraPosition;
 import com.yandex.mapkit.map.InputListener;
 import com.yandex.mapkit.map.Map;
 import com.yandex.mapkit.map.MapObject;
 import com.yandex.mapkit.map.MapObjectCollection;
-import com.yandex.mapkit.map.MapObjectDragListener;
 import com.yandex.mapkit.map.MapObjectTapListener;
 import com.yandex.mapkit.map.PlacemarkMapObject;
 import com.yandex.mapkit.mapview.MapView;
@@ -79,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView hourlyForecastRecycler;
     private HourlyForecastAdapter hourlyForecastAdapter;
     private WeatherRepository weatherRepository;
+    private ExecutorService executorService;
 
     private TextView cityName;
     private TextView tempResult;
@@ -98,27 +97,82 @@ public class MainActivity extends AppCompatActivity {
 
     private MapView mapView;
     private PlacemarkMapObject placemark;
+    private MapObjectCollection mapObjects;
+    private com.yandex.mapkit.layers.Layer precipitationLayer;
 
     @SuppressLint({"WrongThread", "MissingSuperCall"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        executorService = Executors.newSingleThreadExecutor();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_main);
 
         mapView = findViewById(R.id.mapview);
+
         com.yandex.mapkit.map.Map map = mapView.getMap();
         map.move(
                 new CameraPosition(
-                        new Point(55.751225, 37.62954),
-                        17.0f,
+                        new Point(51.5074, -0.1278),
+                        10.0f,
                         150.0f,
                         30.0f
                 )
         );
 
-        final MapObjectTapListener placemarkTapListener = new MapObjectTapListener() {
+        mapObjects = map.getMapObjects();
+
+        ImageProvider imageProvider = ImageProvider.fromResource(this, R.drawable.mark);
+
+        Point initialPoint = new Point(51.5074, -0.1278);
+        placemark = mapObjects.addPlacemark(initialPoint);
+        placemark.setIcon(imageProvider);
+        placemark.setOpacity(0.8f);
+        placemark.setDraggable(true);
+        placemark.addTapListener((mapObject, point) -> {
+            Toast.makeText(
+                    MainActivity.this,
+                    "Метка: " + point.getLatitude() + ", " + point.getLongitude(),
+                    Toast.LENGTH_SHORT
+            ).show();
+            return true;
+        });
+
+        map.move(
+                new CameraPosition(initialPoint, 10.0f, 0.0f, 0.0f),
+                new Animation(Animation.Type.SMOOTH, 1f),
+                null
+        );
+
+        map.setRotateGesturesEnabled(false);
+        map.setTiltGesturesEnabled(false);
+        map.setZoomGesturesEnabled(true);
+        map.setScrollGesturesEnabled(true);
+
+        map.addInputListener(new InputListener() {
+            @Override
+            public void onMapTap(@NonNull Map map, @NonNull Point point) { }
+            @Override
+            public void onMapLongTap(Map map, Point point) {
+                // Плавно перемещаем маркер
+                placemark.setGeometry(point);
+                // И плавно двигаем камеру к нему
+                map.move(
+                        new CameraPosition(point, map.getCameraPosition().getZoom(), 0, 0),
+                        new Animation(Animation.Type.SMOOTH, 0.5f),
+                        null
+                );
+                updateWeatherForLocation(point);
+                Toast.makeText(
+                        MainActivity.this,
+                        "Метка на: " + point.getLatitude() + ", " + point.getLongitude(),
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
+        /*final MapObjectTapListener placemarkTapListener = new MapObjectTapListener() {
             @Override
             public boolean onMapObjectTap(@NonNull MapObject mapObject, @NonNull Point point) {
                 Toast.makeText(
@@ -128,35 +182,8 @@ public class MainActivity extends AppCompatActivity {
                 ).show();
                 return true;
             }
-        };
+        };*/
 
-        ImageProvider imageProvider = ImageProvider.fromResource(this, R.drawable.mark);
-        MapObjectCollection mapObjects = mapView.getMap().getMapObjects();
-        mapView.getMap().setScrollGesturesEnabled(true);
-        mapView.getMap().setRotateGesturesEnabled(false);
-        mapView.getMap().setTiltGesturesEnabled(false);
-        placemark = mapObjects.addPlacemark(new Point(55.751225, 37.62954));
-        placemark.setIcon(imageProvider);
-        placemark.setOpacity(0.8f);
-        placemark.setDraggable(true);
-        placemark.addTapListener(placemarkTapListener);
-
-        map.addInputListener(new InputListener() {
-            @Override
-            public void onMapTap(@NonNull Map map, @NonNull Point point) {
-
-            }
-
-            @Override
-            public void onMapLongTap(Map map, Point point) {
-                placemark.setGeometry(point);
-                Toast.makeText(
-                        MainActivity.this,
-                        "Метка перемещена на: (" + point.getLatitude() + ", " + point.getLongitude() + ")",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
         Button shareButton = findViewById(R.id.shareButton);
         shareButton.setOnClickListener(v -> shareLocation());
 
@@ -278,6 +305,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        if (executorService != null) {
+            executorService.shutdown();
+        }
     }
 
     private boolean isNetworkAvailable() {
@@ -561,6 +591,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "API response: " + response.toString());
                             List<HourlyForecast> forecasts = parseHourlyForecast(response);
                             hourlyForecastAdapter.setForecasts(forecasts);
+                            addPrecipitationMarkers(response);
                         },
                         error -> {
                             Log.e(TAG, "Volley error: " + (error.getMessage() != null ? error.getMessage() : "Unknown error"), error);
@@ -609,6 +640,72 @@ public class MainActivity extends AppCompatActivity {
         return forecasts;
     }
 
+    private void addPrecipitationMarkers(JSONObject forecastResponse) {
+        try {
+            Log.d(TAG, "Forecast response: " + forecastResponse.toString());
+            JSONArray list = forecastResponse.getJSONArray("list");
+            boolean hasPrecipitation = false;
+            for (int i = 0; i < Math.min(8, list.length()); i++) {
+                JSONObject forecast = list.getJSONObject(i);
+                Log.d(TAG, "Forecast item " + i + ": " + forecast.toString());
+                if (forecast.has("rain") && forecast.getJSONObject("rain").has("3h") && forecast.getJSONObject("rain").getDouble("3h") > 0) {
+                    hasPrecipitation = true;
+                    Log.d(TAG, "Rain found: " + forecast.getJSONObject("rain").getDouble("3h") + " mm");
+                    break;
+                }
+                if (forecast.has("snow") && forecast.getJSONObject("snow").has("3h") && forecast.getJSONObject("snow").getDouble("3h") > 0) {
+                    hasPrecipitation = true;
+                    Log.d(TAG, "Snow found: " + forecast.getJSONObject("snow").getDouble("3h") + " mm");
+                    break;
+                }
+            }
+
+            if (hasPrecipitation) {
+                Log.d(TAG, "Attempting to add precipitation marker");
+                executorService.execute(() -> {
+                    Location location = weatherRepository.getLatestLocation();
+                    final Point point;
+                    if (location != null) {
+                        point = new Point(location.getLatitude(), location.getLongitude());
+                        Log.d(TAG, "Location for marker: (" + point.getLatitude() + ", " + point.getLongitude() + ")");
+                    } else {
+                        point = new Point(51.5074, -0.1278); // Лондон по умолчанию
+                        Log.w(TAG, "Using default London location");
+                    }
+                    runOnUiThread(() -> {
+                        try {
+                            mapObjects.clear(); // Очистка старых маркеров
+                            PlacemarkMapObject precipitationMark = mapObjects.addPlacemark(
+                                    new Point(point.getLatitude() + 0.01, point.getLongitude() + 0.01)
+                            );
+                            precipitationMark.setIcon(ImageProvider.fromResource(MainActivity.this, R.drawable.water));
+                            precipitationMark.setOpacity(1.0f);
+                            mapView.getMap().getMapObjects().setVisible(true);
+                            mapView.getMap().move(mapView.getMap().getCameraPosition()); // Обновление карты
+                            Log.d(TAG, "Precipitation marker added at: (" + (point.getLatitude() + 0.01) + ", " + (point.getLongitude() + 0.01) + ")");
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error adding precipitation marker: " + e.getMessage(), e);
+                        }
+                    });
+                });
+            } else {
+                Log.d(TAG, "No precipitation found in forecast");
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing precipitation data: " + e.getMessage());
+        }
+    }
+
+    private void updateWeatherForLocation(Point point){
+        String city = getCityName(point.getLongitude(), point.getLatitude());
+        if(!city.equals("Не найдено")){
+            getWeatherInfo(city);
+        }
+        else {
+            Toast.makeText(this, "Не удалось определить город для этой точки", Toast.LENGTH_SHORT).show();
+
+        }
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {

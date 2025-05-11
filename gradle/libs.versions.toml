@@ -10,6 +10,7 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+yandexMaps = "4.6.0"
 mapsMobile = "4.15.0-lite"
 mapsMobileVersion = "4.6.1-full"
 material = "1.12.0"
@@ -27,8 +28,10 @@ roomCommonJvm = "2.7.0-rc03"
 supportAnnotations = "28.0.0"
 playServicesLocation = "21.3.0"
 annotation = "1.9.1"
+playServicesMaps = "19.2.0"
 
 [libraries]
+yandex-maps = { module = "com.yandex.android:maps.mobile", version.ref = "yandexMaps" }
 androidx-core = { module = "androidx.core:core", version.ref = "core" }
 central-publishing-maven-plugin = { module = "org.sonatype.central:central-publishing-maven-plugin", version.ref = "centralPublishingMavenPlugin" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
@@ -59,5 +62,6 @@ androidx-room-common = { group = "androidx.room", name = "room-common", version.
 support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

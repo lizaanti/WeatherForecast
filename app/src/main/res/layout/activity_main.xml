@@ -204,6 +204,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="16dp" />
+
     <com.yandex.mapkit.mapview.MapView
         android:id="@+id/mapview"
         android:layout_width="170pt"

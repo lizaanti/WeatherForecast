@@ -43,6 +43,9 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/appwidget_provider" />
+            <meta-data
+                android:name="com.yandex.mapkit.API_KEY"
+                android:value="1ebd5527-a66e-4395-89f6-7ddb49c90439" />
         </receiver>
     </application>
 

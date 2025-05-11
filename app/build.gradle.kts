@@ -42,6 +42,9 @@
 
         dependencies {
 
+            implementation(libs.yandex.maps)
+            implementation (libs.volley)
+            implementation (libs.picasso)
             implementation (libs.androidx.core)
             implementation (libs.maps.mobile.v461full)
             implementation(libs.maps.mobile)
@@ -62,8 +65,6 @@
             androidTestImplementation(libs.ext.junit)
             androidTestImplementation(libs.espresso.core)
             implementation(libs.gson)
-            implementation(libs.picasso)
-            implementation(libs.volley)
             implementation(libs.play.services.location.license)
 
             implementation(libs.androidx.runtime.livedata)
@@ -73,5 +74,8 @@
             implementation(libs.firebase.messaging)
             runtimeOnly(libs.androidx.core)
         }
+    }
+    dependencies {
+        implementation(libs.play.services.maps)
     }
 

@@ -43,10 +43,6 @@ public class WeatherRepository {
     public Location getLatestLocation() {
         return database.locationDao().getLatestLocation();
     }
-    /*public LiveData<List<UserPreferences>> getAllPreferences() {
-        return database.userPreferencesDao().getAllPreferences();
-    }*/
-
 
     public void insertWeatherData(WeatherData weatherData, String cityName) {
         new Thread(() -> {

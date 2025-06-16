@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+
             <TextView
                 android:id="@+id/CityNameTV"
                 android:layout_width="match_parent"
@@ -46,7 +47,8 @@
                     android:layout_gravity="right"
                     android:layout_margin="16dp"
                     android:foregroundGravity="center_vertical"
-                    android:src="@drawable/settings" />
+                    android:src="@drawable/settings"
+                    android:visibility="invisible"/>
                 <SearchView
                     android:id="@+id/SearchView"
                     android:layout_width="match_parent"
@@ -196,6 +198,7 @@
         android:text="Почасовой прогноз"
         android:textSize="18sp"
         android:layout_marginTop="16dp"
+        android:textColor="@color/white"
         android:layout_marginBottom="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -209,7 +212,6 @@
         android:id="@+id/mapview"
         android:layout_width="170pt"
         android:layout_height="150pt"
-        android:background="#FF0000"
         android:layout_gravity="center"/>
     <Button
         android:id="@+id/shareButton"
@@ -218,6 +220,7 @@
         android:text="Поделиться"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:visibility="invisible"/>
 </LinearLayout>
 </androidx.core.widget.NestedScrollView>

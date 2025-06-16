@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
         ImageProvider imageProvider = ImageProvider.fromResource(this, R.drawable.mark);
 
-        Point initialPoint = new Point(51.5074, -0.1278);
+        Point initialPoint = new Point(55.7558, 37.6176);
         placemark = mapObjects.addPlacemark(initialPoint);
         placemark.setIcon(imageProvider);
         placemark.setOpacity(0.8f);

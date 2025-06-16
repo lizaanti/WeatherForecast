@@ -21,6 +21,7 @@
             android:orientation="vertical">
 
 
+
             <TextView
                 android:id="@+id/CityNameTV"
                 android:layout_width="match_parent"

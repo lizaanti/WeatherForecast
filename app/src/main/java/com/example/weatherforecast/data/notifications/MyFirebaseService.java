@@ -31,7 +31,6 @@ public class MyFirebaseService extends FirebaseMessagingService {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         prefs.edit().putString(KEY_TOKEN, token).apply();
     }
-
     // При необходимости получаем последний токен
     public static String getSavedToken(Context context){
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);

@@ -172,18 +172,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /*final MapObjectTapListener placemarkTapListener = new MapObjectTapListener() {
-            @Override
-            public boolean onMapObjectTap(@NonNull MapObject mapObject, @NonNull Point point) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "Нажмите на метку (" + point.getLongitude() + ", " + point.getLatitude() + ")",
-                        Toast.LENGTH_SHORT
-                ).show();
-                return true;
-            }
-        };*/
-
         Button shareButton = findViewById(R.id.shareButton);
         shareButton.setOnClickListener(v -> shareLocation());
 
@@ -236,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        // Примерная подписка на тему weather_updates
         FirebaseMessaging.getInstance()
                 .subscribeToTopic("weather_updates")
                 .addOnCompleteListener(task -> {
@@ -595,7 +582,6 @@ public class MainActivity extends AppCompatActivity {
                         },
                         error -> {
                             Log.e(TAG, "Volley error: " + (error.getMessage() != null ? error.getMessage() : "Unknown error"), error);
-                            // Показать ошибку в UI, если нужно
                         });
 
                 RequestQueue queue = Volley.newRequestQueue(this);
